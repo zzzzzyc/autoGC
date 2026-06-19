@@ -17,7 +17,7 @@
       "run_at": "document_end"
     },
     {
-      "matches": ["*://*.certitude.org/*", "*://*.geocheck.org/*"],
+      "matches": ["*://*.certitude.org/*", "*://*.certitudes.org/*", "*://*.geocheck.org/*"],
       "js": ["src/content/checker.ts"],
       "run_at": "document_end"
     }
@@ -26,6 +26,7 @@
   "host_permissions": [
     "*://*.geocaching.com/*",
     "*://*.certitude.org/*",
+    "*://*.certitudes.org/*",
     "*://*.geocheck.org/*"
   ]
 }

@@ -6,7 +6,7 @@ console.log('autoGC Content Script injected into Checker Website');
 // Detect which checker this is based on URL
 const currentUrl = window.location.href;
 
-if (currentUrl.includes('certitude.org')) {
+if (currentUrl.includes('certitude.org') || currentUrl.includes('certitudes.org')) {
     console.log('Certitude Checker detected');
     // TODO: Certitude logic
 } else if (currentUrl.includes('geocheck.org')) {
@@ -43,7 +43,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
         return null;
       };
       
-      if (currentUrl.includes('certitude.org')) {
+      if (currentUrl.includes('certitude.org') || currentUrl.includes('certitudes.org')) {
         type = 'Certitude';
         solved = !!document.querySelector(certitudeSelectors.successElement);
         failed = !!document.querySelector(certitudeSelectors.failureElement);
@@ -151,7 +151,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
         actions: ['DEBUG_FILL_CHECKER', 'DEBUG_SUBMIT_CHECKER'] 
       });
     } else if (message.action === 'DEBUG_FILL_CHECKER') {
-      if (currentUrl.includes('certitude.org')) {
+      if (currentUrl.includes('certitude.org') || currentUrl.includes('certitudes.org')) {
         const input = document.querySelector(certitudeSelectors.solutionInput) as HTMLInputElement;
         if (input) {
           input.value = message.payload.solution;
@@ -173,7 +173,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
       }
       sendResponse({ success: false, error: 'Input field not found on this Checker page' });
     } else if (message.action === 'DEBUG_SUBMIT_CHECKER') {
-      if (currentUrl.includes('certitude.org')) {
+      if (currentUrl.includes('certitude.org') || currentUrl.includes('certitudes.org')) {
         const submitBtn = document.querySelector(certitudeSelectors.submitButton) as HTMLInputElement;
         if (submitBtn) {
           submitBtn.click();
