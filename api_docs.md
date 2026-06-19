@@ -1,6 +1,6 @@
 # autoGC 扩展 Base API 文档
 
-本文档为 autoGC Geocaching 浏览器扩展中新增/扩展的 Base API 提供了详尽的参考指南。内容涵盖了在内容脚本（content scripts）中实现的 9 个新增 `GCInfo` 字段，以及 2 个自动化 DOM 交互工作流。
+本文档为 autoGC Geocaching 浏览器扩展中新增/扩展的 Base API 提供了详尽的参考指南。内容涵盖了在内容脚本（content scripts）中实现的 9 个新增 `GCInfo` 字段，2 个自动化 DOM 交互工作流，以及针对列表页面和解密校验网站（Certitude / GeoCheck）的选择器与交互逻辑。
 
 ---
 
@@ -64,7 +64,7 @@
 
 ---
 
-## 2. 交互工作流 (Action Workflows)
+## 2. 宝藏详情页交互工作流 (Action Workflows)
 
 这些异步工作流会在 Geocaching 宝藏详情页上执行直接的 DOM 交互。它们在 `src/content/geocaching.ts` 中定义，并由扩展程序的弹窗 UI（popup UI）发送的消息触发。
 
@@ -90,11 +90,6 @@
     6.  **轮询确认按钮**：设置第二个轮询定时器，每 `200ms` 检查一次（最多尝试 `20` 次，最长 `4` 秒），等待最终的确认按钮选择器 `geocachingSelectors.actionCorrectedCoords.accept` (`[data-testid="corrected-coords-accept"], button.btn-cc-accept`) 出现。
         *   如果确认按钮未出现，清除定时器并返回 `'Error: Accept button did not appear after submit.'`。
         *   否则，点击确认按钮（该操作会提交坐标并触发**页面的原生重载**），并返回 `'Coordinates accepted. Page will now refresh.'`。
-*   **异常场景**：
-    *   页面上未找到坐标编辑触发按钮。
-    *   修改坐标的弹出层在 4 秒内加载/渲染失败。
-    *   弹出层内未找到提交按钮。
-    *   点击提交后，确认对话框/确认按钮未渲染。
 
 ---
 
@@ -116,6 +111,68 @@
     4.  **保存备注**：通过 `geocachingSelectors.actionPersonalNote.submit` (`button.js-pcn-submit`) 定位保存/提交按钮。
         *   若未找到保存按钮，返回 `'Error: Save button not found.'`。
         *   否则，点击保存按钮，并返回 `'Personal Note saved successfully.'`。
-*   **异常场景**：
-    *   备注编辑区域未能显示，或编辑触发器失效。
-    *   编辑区域内缺少保存/提交按钮。
+
+---
+
+## 3. 宝藏列表页面解析选择器 (`listSelectors`)
+
+用于在列表页（List Page）提取宝藏行及各字段信息的选择器，定义在 `src/utils/selectors.ts` 的 `listSelectors` 对象中：
+
+| 字段/功能 | 选择器 (Selector) | 描述 |
+| :--- | :--- | :--- |
+| `row` | `tr.list-geocache-row` | 代表列表中的单个宝藏行元素。 |
+| `gcCode` | `.geocache-meta span:last-child` | 列表行内用于提取宝藏 GC Code 的元素。 |
+| `cacheName` | `a[href*="/geocache/"]` | 列表行内获取宝藏名称的链接元素。 |
+| `cacheUrl` | `a[href*="/geocache/"]` | 列表行内用于提取宝藏详细页 URL 的元素。 |
+| `dtRating` | `td.list-geocache-dt` | 列表行内提取 D/T 评分（Difficulty / Terrain）的单元格。 |
+
+---
+
+## 4. 解题验证网站（Certitude & GeoCheck）选择器与交互
+
+该扩展还会在支持的第三方坐标验证网站（Certitude / GeoCheck）上注入内容脚本 `src/content/checker.ts`，以接收扩展程序的控制命令自动填充解密答案。
+
+### A. 网页特征探测与消息监听
+内容脚本通过检查 `window.location.href` 来识别当前的校验网站，并使用 `chrome.runtime.onMessage.addListener` 监听外部命令：
+*   **`GET_PAGE_STATE` 消息**：
+    *   **作用**：获取当前网页的解密器类型。
+    *   **返回值**：`{ success: true, type: 'Certitude Page' | 'GeoCheck Page', data: { url: string }, actions: ['DEBUG_FILL_CHECKER'] }`。
+*   **`DEBUG_FILL_CHECKER` 消息**：
+    *   **参数**：`message.payload.solution` （解答出的坐标字符串）。
+    *   **作用**：将解答自动填入对应的输入框中。
+
+---
+
+### B. Certitude 选择器 (`certitudeSelectors`)
+
+Certitude 校验器对应的选择器定义在 `certitudeSelectors` 中：
+
+| 项 | 选择器 (Selector) | 描述 |
+| :--- | :--- | :--- |
+| `solutionInput` | `input#solution, input[name="coordinates"]` | 解答/坐标输入框。 |
+| `submitButton` | `input#submitButton, input[type="submit"]` | 提交按钮。 |
+| `successElement` | `.success` | 指示坐标校验正确的提示元素。 |
+| `failureElement` | `.error, .error-detail` | 指示校验失败的错误提示元素。 |
+
+---
+
+### C. GeoCheck 选择器 (`geocheckSelectors`)
+
+GeoCheck 校验器支持单文本框与六文本框输入模式，并包含人机验证，其选择器定义在 `geocheckSelectors` 中：
+
+| 项 | 选择器 (Selector) | 描述 |
+| :--- | :--- | :--- |
+| `oneFieldInput` | `input[name="coordOneField"]` | 单个输入框模式下的坐标输入框。 |
+| `sixFieldInputs.latRadio` | `input[name="lat"]` | 纬度单选按钮（N / S）。 |
+| `sixFieldInputs.latDeg` | `input[name="latdeg"]` | 纬度：度。 |
+| `sixFieldInputs.latMin` | `input[name="latmin"]` | 纬度：分。 |
+| `sixFieldInputs.latDec` | `input[name="latdec"]` | 纬度：小数分。 |
+| `sixFieldInputs.lonRadio` | `input[name="lon"]` | 经度单选按钮（E / W）。 |
+| `sixFieldInputs.lonDeg` | `input[name="londeg"]` | 经度：度。 |
+| `sixFieldInputs.lonMin` | `input[name="lonmin"]` | 经度：分。 |
+| `sixFieldInputs.lonDec` | `input[name="londec"]` | 经度：小数分。 |
+| `captchaImage` | `img[src="/dimages/captcha.php"]` | GeoCheck 页面上的人机验证图片。 |
+| `captchaInput` | `input[name="usercaptcha"]` | 人机验证输入框。 |
+| `submitButton` | `input[type="submit"][value="Check"]` | 提交验证按钮。 |
+| `successElement` | `input[name="ref"][value="/chkcorrect.php"]` | 指示校验正确的标志元素。 |
+| `failureElement` | `td.alert` | 指示校验失败的提示单元格。 |
