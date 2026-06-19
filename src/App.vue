@@ -281,6 +281,11 @@
             <span class="font-bold">> Result:</span> {{ actionResult }}
           </div>
         </div>
+        
+        <div v-if="pageState?.data?.solvedCoords" class="mt-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-200">
+          <strong>解开的坐标: </strong>
+          <span class="font-mono text-green-700">{{ pageState?.data?.solvedCoords }}</span>
+        </div>
       </div>
     </details>
   </div>
@@ -304,6 +309,7 @@ interface PageState {
     failed?: boolean;
     hasCaptcha?: boolean;
     captchaBase64?: string | null;
+    solvedCoords?: string | null;
     gcCode?: string | null;
   };
   actions?: string[];

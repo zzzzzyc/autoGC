@@ -23,6 +23,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
       let failed = false;
       let hasCaptcha = false;
       let captchaBase64: string | null = null;
+      let solvedCoords: string | null = null;
       
       const getBase64Image = (img: HTMLImageElement) => {
         try {
@@ -44,6 +45,13 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
         type = 'Certitude';
         solved = !!document.querySelector(certitudeSelectors.successElement);
         failed = !!document.querySelector(certitudeSelectors.failureElement);
+        
+        if (solved) {
+          const solutionEl = document.querySelector('#solution');
+          if (solutionEl) {
+            solvedCoords = solutionEl.textContent?.trim() || null;
+          }
+        }
       } else if (currentUrl.includes('geocheck.org')) {
         type = 'GeoCheck';
         solved = !!document.querySelector(geocheckSelectors.successElement);
@@ -52,6 +60,18 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
         if (captchaImg) {
           hasCaptcha = true;
           captchaBase64 = getBase64Image(captchaImg);
+        }
+        
+        if (solved) {
+          const tds = Array.from(document.querySelectorAll('td'));
+          const coordTd = tds.find(td => td.textContent?.includes('Coordinate:'));
+          if (coordTd && coordTd.nextElementSibling) {
+            const cacheData = coordTd.nextElementSibling.querySelector('.cachedata');
+            if (cacheData) {
+              // Replace non-breaking spaces with regular spaces
+              solvedCoords = cacheData.textContent?.replace(/\u00A0/g, ' ').trim() || null;
+            }
+          }
         }
       }
       
@@ -77,6 +97,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
           failed,
           hasCaptcha,
           captchaBase64,
+          solvedCoords,
           gcCode
         }, 
         actions: ['DEBUG_FILL_CHECKER', 'DEBUG_SUBMIT_CHECKER'] 
