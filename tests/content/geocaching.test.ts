@@ -498,6 +498,38 @@ describe('Cross-Feature & Real-World Integration', () => {
     expect(info?.owner).toBe('magic_snake');
   });
 
+  it('should extract correct log types and images from cache_dom_3.txt', () => {
+    loadDOMFromCache('cache_dom_3.txt');
+    const info = extractGCInfo();
+    expect(info?.logs).toHaveLength(5);
+    
+    // First 5 logs in cache_dom_3.txt are all "Found it" (type 2)
+    info?.logs.forEach(log => {
+      expect(log.type).toBe(2);
+    });
+
+    // Manually check rows 8 (DNF) and 9 (Write Note) to ensure our extraction selector is correct
+    const rows = document.querySelectorAll('.LogsTable tr, #cache_logs_table tr, .log-container');
+    
+    const dnfRow = rows[7]; // Log 8
+    const dnfIcon = (
+      dnfRow.querySelector('.LogDisplayRight img[src*="/images/logtypes/"], .LogType img[src*="/images/logtypes/"]') ||
+      dnfRow.querySelector('img[src*="/images/logtypes/"]:not(.LogDisplayLeft img)')
+    ) as HTMLImageElement;
+    expect(dnfIcon).not.toBeNull();
+    const dnfMatch = dnfIcon.src.match(/\/images\/logtypes\/(\d+)\.png/);
+    expect(dnfMatch?.[1]).toBe('3');
+
+    const noteRow = rows[8]; // Log 9
+    const noteIcon = (
+      noteRow.querySelector('.LogDisplayRight img[src*="/images/logtypes/"], .LogType img[src*="/images/logtypes/"]') ||
+      noteRow.querySelector('img[src*="/images/logtypes/"]:not(.LogDisplayLeft img)')
+    ) as HTMLImageElement;
+    expect(noteIcon).not.toBeNull();
+    const noteMatch = noteIcon.src.match(/\/images\/logtypes\/(\d+)\.png/);
+    expect(noteMatch?.[1]).toBe('4');
+  });
+
   it('should execute coordinate update workflow on cache_dom_1.txt DOM', async () => {
     loadDOMFromCache('cache_dom_1.txt');
 

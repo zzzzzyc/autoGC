@@ -93,7 +93,10 @@ export function extractGCInfo(): GCInfo | null {
 
       // Extract Log Type ID from icon source
       let typeId = 0;
-      const typeIcon = row.querySelector('.LogDisplayRight img.icon[src*="/images/logtypes/"], .LogType img.icon[src*="/images/logtypes/"], img[src*="/images/logtypes/"]') as HTMLImageElement;
+      const typeIcon = (
+        row.querySelector('.LogDisplayRight img[src*="/images/logtypes/"], .LogType img[src*="/images/logtypes/"]') ||
+        row.querySelector('img[src*="/images/logtypes/"]:not(.LogDisplayLeft img)')
+      ) as HTMLImageElement;
       if (typeIcon && typeIcon.src) {
         const match = typeIcon.src.match(/\/images\/logtypes\/(\d+)\.png/);
         if (match && match[1]) {
