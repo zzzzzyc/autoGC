@@ -24,6 +24,8 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
       let hasCaptcha = false;
       let captchaBase64: string | null = null;
       let solvedCoords: string | null = null;
+      let solvedImageUrl: string | null = null;
+      let solvedMessage: string | null = null;
       
       const getBase64Image = (img: HTMLImageElement) => {
         try {
@@ -63,14 +65,38 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
         }
         
         if (solved) {
-          const tds = Array.from(document.querySelectorAll('td'));
-          const coordTd = tds.find(td => td.textContent?.includes('Coordinate:'));
-          if (coordTd && coordTd.nextElementSibling) {
-            const cacheData = coordTd.nextElementSibling.querySelector('.cachedata');
-            if (cacheData) {
-              // Replace non-breaking spaces with regular spaces
-              solvedCoords = cacheData.textContent?.replace(/\u00A0/g, ' ').trim() || null;
+          // 1. Coordinates: .cachedata that does not start with GC
+          const cacheDataElements = Array.from(document.querySelectorAll('.cachedata'));
+          const coordEl = cacheDataElements.find(el => {
+            const text = el.textContent?.trim() || '';
+            return text.length > 0 && !text.toUpperCase().startsWith('GC');
+          });
+          if (coordEl) {
+            solvedCoords = coordEl.textContent?.replace(/\u00A0/g, ' ').trim() || null;
+          }
+          
+          // 2. Image: in the tr following the tr that contains td.nav
+          const navTd = document.querySelector('td.nav');
+          if (navTd) {
+            const parentTr = navTd.closest('tr');
+            if (parentTr && parentTr.nextElementSibling) {
+              const img = parentTr.nextElementSibling.querySelector('img[src*="/md5pics"]') as HTMLImageElement;
+              if (img) {
+                solvedImageUrl = img.src;
+              }
             }
+          }
+          if (!solvedImageUrl) {
+            // Fallback
+            const img = document.querySelector('img[src*="/md5pics"]') as HTMLImageElement;
+            if (img) solvedImageUrl = img.src;
+          }
+          
+          // 3. Message: i inside div.common-text_e22jW.cos-font-medium
+          const msgContainer = document.querySelector('div.common-text_e22jW.cos-font-medium');
+          if (msgContainer) {
+            const iEl = msgContainer.querySelector('i');
+            solvedMessage = (iEl ? iEl.textContent : msgContainer.textContent)?.trim() || null;
           }
         }
       }
@@ -98,6 +124,8 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
           hasCaptcha,
           captchaBase64,
           solvedCoords,
+          solvedImageUrl,
+          solvedMessage,
           gcCode
         }, 
         actions: ['DEBUG_FILL_CHECKER', 'DEBUG_SUBMIT_CHECKER'] 

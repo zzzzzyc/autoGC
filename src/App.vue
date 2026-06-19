@@ -282,9 +282,19 @@
           </div>
         </div>
         
-        <div v-if="pageState?.data?.solvedCoords" class="mt-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-200">
-          <strong>解开的坐标: </strong>
-          <span class="font-mono text-green-700">{{ pageState?.data?.solvedCoords }}</span>
+        <div v-if="pageState?.data?.solvedCoords || pageState?.data?.solvedImageUrl || pageState?.data?.solvedMessage" class="mt-2 text-xs text-gray-700 bg-white p-2 rounded border border-gray-200">
+          <div v-if="pageState?.data?.solvedCoords" class="mb-1">
+            <strong>解开的坐标: </strong>
+            <span class="font-mono text-green-700">{{ pageState?.data?.solvedCoords }}</span>
+          </div>
+          <div v-if="pageState?.data?.solvedMessage" class="mb-1 text-gray-600 italic border-l-2 border-gray-300 pl-2">
+            "{{ pageState?.data?.solvedMessage }}"
+          </div>
+          <div v-if="pageState?.data?.solvedImageUrl" class="mt-2">
+            <a :href="pageState?.data?.solvedImageUrl" target="_blank" title="点击查看大图">
+              <img :src="pageState?.data?.solvedImageUrl" class="max-w-full h-auto max-h-32 border border-gray-300 rounded cursor-pointer hover:opacity-90" alt="Solved Image" />
+            </a>
+          </div>
         </div>
       </div>
     </details>
@@ -310,6 +320,8 @@ interface PageState {
     hasCaptcha?: boolean;
     captchaBase64?: string | null;
     solvedCoords?: string | null;
+    solvedImageUrl?: string | null;
+    solvedMessage?: string | null;
     gcCode?: string | null;
   };
   actions?: string[];
