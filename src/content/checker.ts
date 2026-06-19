@@ -84,21 +84,29 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
     } else if (message.action === 'DEBUG_FILL_CHECKER') {
       if (currentUrl.includes('certitude.org')) {
         const input = document.querySelector(certitudeSelectors.solutionInput) as HTMLInputElement;
+        const submitBtn = document.querySelector(certitudeSelectors.submitButton) as HTMLInputElement;
         if (input) {
           input.value = message.payload.solution;
-          sendResponse({ success: true, message: 'Certitude filled' });
+          if (submitBtn) {
+            submitBtn.click();
+          }
+          sendResponse({ success: true, message: 'Certitude filled and submitted' });
           return;
         }
       } else if (currentUrl.includes('geocheck.org')) {
         const input = document.querySelector(geocheckSelectors.oneFieldInput) as HTMLInputElement;
         const captchaInput = document.querySelector(geocheckSelectors.captchaInput) as HTMLInputElement;
+        const submitBtn = document.querySelector(geocheckSelectors.submitButton) as HTMLInputElement;
         
         if (input) {
           input.value = message.payload.solution;
           if (captchaInput && message.payload.captcha) {
             captchaInput.value = message.payload.captcha;
           }
-          sendResponse({ success: true, message: 'GeoCheck filled' });
+          if (submitBtn) {
+            submitBtn.click();
+          }
+          sendResponse({ success: true, message: 'GeoCheck filled and submitted' });
           return;
         }
       }
