@@ -46,11 +46,11 @@ npm run test
 
 详细的技术说明、API 接口和测试指南已移至对应文档中：
 
-*   **API 接口与设计说明**：请参阅 [docs/api_docs.md](file:///c:/Users/zzzzz/Documents/antigravity/GC-ATO/docs/api_docs.md)。
-*   **测试框架与环境配置**：请参阅 [docs/TEST_INFRA.md](file:///c:/Users/zzzzz/Documents/antigravity/GC-ATO/docs/TEST_INFRA.md)。
+*   **API 接口与设计说明**：请参阅 [docs/api_docs.md](docs/api_docs.md)。
+*   **测试框架与环境配置**：请参阅 [docs/TEST_INFRA.md](docs/TEST_INFRA.md)。
 
 ---
 
 ## 许可证
 
-本项目基于 [WTFPL](file:///c:/Users/zzzzz/Documents/antigravity/GC-ATO/LICENSE) (Do What The Fuck You Want To Public License) 协议开源。
+本项目基于 [WTFPL](LICENSE) (Do What The Fuck You Want To Public License) 协议开源。
