@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "autoGC",
+  "version": "1.0.0",
+  "description": "Geocaching Automation Extension",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "src/background.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.geocaching.com/*"],
+      "js": ["src/content/geocaching.ts"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["*://*.certitude.org/*", "*://*.geocheck.org/*"],
+      "js": ["src/content/checker.ts"],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": ["storage", "activeTab", "scripting", "offscreen"],
+  "host_permissions": [
+    "*://*.geocaching.com/*",
+    "*://*.certitude.org/*",
+    "*://*.geocheck.org/*"
+  ]
+}
