@@ -421,7 +421,7 @@ const executeAction = async () => {
   actionResult.value = 'Executing...';
   let payload: any = {};
   if (selectedAction.value === 'DEBUG_WRITE_NOTE') {
-    payload = { note: noteText.value };
+    payload = { text: noteText.value };
   } else if (selectedAction.value === 'DEBUG_FILL_CHECKER') {
     payload = { 
       solution: checkerSolution.value,

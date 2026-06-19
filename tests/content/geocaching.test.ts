@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { extractGCInfo, executeUpdateCoordinates } from '../../src/content/geocaching';
+import { extractGCInfo, executeUpdateCoordinates, executeSavePersonalNote } from '../../src/content/geocaching';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -493,6 +493,113 @@ describe('Feature 2: executeUpdateCoordinates workflow', () => {
     await Promise.resolve();
     const result = await promise;
     expect(result).toBe('Error: Corrected coords input popover did not appear.');
+  });
+});
+
+describe('Feature 3: executeSavePersonalNote workflow', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('should successfully save note if textarea is already visible', async () => {
+    document.body.innerHTML = `
+      <div id="editCacheNote" style="display: block;">
+        <textarea id="cacheNoteText"></textarea>
+        <button class="js-pcn-submit">Save</button>
+      </div>
+    `;
+
+    const textarea = document.getElementById('cacheNoteText') as HTMLTextAreaElement;
+    Object.defineProperty(textarea, 'offsetParent', {
+      get: () => document.getElementById('editCacheNote')
+    });
+
+    const promise = executeSavePersonalNote('Hello, this is a test note!');
+
+    await vi.advanceTimersByTimeAsync(200);
+
+    const result = await promise;
+    expect(result).toBe('Personal Note saved successfully.');
+    expect(textarea.value).toBe('Hello, this is a test note!');
+  });
+
+  it('should trigger edit container toggle if hidden initially', async () => {
+    document.body.innerHTML = `
+      <button id="viewCacheNote">Edit Note</button>
+      <div id="editCacheNote" style="display: none;">
+        <textarea id="cacheNoteText"></textarea>
+        <button class="js-pcn-submit">Save</button>
+      </div>
+    `;
+
+    const trigger = document.getElementById('viewCacheNote')!;
+    const editContainer = document.getElementById('editCacheNote')!;
+    const textarea = document.getElementById('cacheNoteText') as HTMLTextAreaElement;
+
+    trigger.addEventListener('click', () => {
+      editContainer.style.display = 'block';
+    });
+
+    Object.defineProperty(textarea, 'offsetParent', {
+      get: () => (editContainer.style.display === 'block' ? editContainer : null)
+    });
+
+    const promise = executeSavePersonalNote('Hello, this is a test note!');
+
+    await vi.advanceTimersByTimeAsync(200);
+
+    const result = await promise;
+    expect(result).toBe('Personal Note saved successfully.');
+    expect(textarea.value).toBe('Hello, this is a test note!');
+    expect(editContainer.style.display).toBe('block');
+  });
+
+  it('should fail if note text area does not become visible', async () => {
+    document.body.innerHTML = `
+      <button id="viewCacheNote">Edit Note</button>
+      <div id="editCacheNote" style="display: none;">
+        <textarea id="cacheNoteText"></textarea>
+        <button class="js-pcn-submit">Save</button>
+      </div>
+    `;
+
+    const textarea = document.getElementById('cacheNoteText') as HTMLTextAreaElement;
+    Object.defineProperty(textarea, 'offsetParent', {
+      get: () => null
+    });
+
+    const promise = executeSavePersonalNote('Hello, this is a test note!');
+
+    await vi.advanceTimersByTimeAsync(2200);
+
+    const result = await promise;
+    expect(result).toBe('Error: Note text area did not become visible.');
+  });
+
+  it('should fail if save button is missing', async () => {
+    document.body.innerHTML = `
+      <div id="editCacheNote" style="display: block;">
+        <textarea id="cacheNoteText"></textarea>
+      </div>
+    `;
+
+    const textarea = document.getElementById('cacheNoteText') as HTMLTextAreaElement;
+    Object.defineProperty(textarea, 'offsetParent', {
+      get: () => document.getElementById('editCacheNote')
+    });
+
+    const promise = executeSavePersonalNote('Hello, this is a test note!');
+
+    await vi.advanceTimersByTimeAsync(200);
+
+    const result = await promise;
+    expect(result).toBe('Error: Save button not found.');
   });
 });
 
