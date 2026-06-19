@@ -14,7 +14,7 @@ The `GCInfo` interface (defined in `src/types/index.ts`) has been expanded to in
 | :--- | :--- | :--- | :--- |
 | `attributes` | `string[]` | `geocachingSelectors.attributes` <br> (`.CacheDetailNavigationWidget .WidgetBody img`) | A list of attribute/amenity names (e.g., "Dogs allowed", "Kids friendly") associated with the geocache. |
 | `favoritePoints` | `string` | `geocachingSelectors.favoritePoints` <br> (`.favorite-value, #ctl00_ContentBody_FavoritePointData_lblFavoritePoints, [data-testid="favorite-points"]`) | The total count of Favorite Points awarded to the geocache by players. |
-| `gpxLink` | `string` | `geocachingSelectors.gpxLink` <br> (`a[href*="gpx"], #ctl00_ContentBody_btnSendToGPS`) | The URL string directing to the GPX file download for the cache. |
+| `cacheType` | `string` | `geocachingSelectors.cacheType` <br> (`a[href*="/about/cache_types.aspx"]`) | The type of the geocache (e.g., "Traditional Cache", "Mystery Cache"). |
 | `description` | `string` | `geocachingSelectors.description` <br> (`#ctl00_ContentBody_LongDescription, #ctl00_ContentBody_ShortDescription, .UserSuppliedContent`) | The full HTML content representing the description of the cache. |
 | `tbInventory` | `Array<{ name: string; link: string }>` | `geocachingSelectors.tbInventory` <br> (`#ctl00_ContentBody_uxTravelBugList a, .tb-list a`) | An inventory of Travel Bugs (Trackables) currently logged inside the geocache. |
 | `bookmarks` | `Array<{ name: string; link: string; user: string }>` | `geocachingSelectors.bookmarks` <br> (`#ctl00_ContentBody_BookmarkList_dlBookmarks a, .BookmarkList a`) | Public bookmark lists that include this geocache, created by other users. |
@@ -34,9 +34,9 @@ The `GCInfo` interface (defined in `src/types/index.ts`) has been expanded to in
 *   **Method**: Selects the element containing the favorite point count.
 *   **Parsing**: Retrieves the trimmed `textContent` of the matched element. Defaults to `'0'` if the element is missing or does not contain text.
 
-#### 3. `gpxLink`
-*   **Method**: Selects the anchor tag referencing the GPX download or GPS button.
-*   **Parsing**: Retrieves the `href` attribute, defaulting to an empty string (`''`) if not present.
+#### 3. `cacheType`
+*   **Method**: Selects the anchor tag referencing the cache types about page.
+*   **Parsing**: Retrieves the `title` attribute, defaulting to `'Unknown'` if not present.
 
 #### 4. `description`
 *   **Method**: Queries the description section using high-priority identifiers (e.g., long description or user-supplied content containers).
