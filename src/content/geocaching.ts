@@ -26,6 +26,8 @@ export function extractGCInfo(): GCInfo | null {
 
   const gcCode = gcCodeEl.textContent?.trim() || '';
   
+  const typeEl = document.querySelector(geocachingSelectors.cacheType);
+  
   const dImg = document.querySelector(geocachingSelectors.difficulty) as HTMLImageElement;
   const tImg = document.querySelector(geocachingSelectors.terrain) as HTMLImageElement;
   const difficulty = dImg?.alt?.match(/([\d\.]+)/)?.[1] || '';
@@ -78,6 +80,7 @@ export function extractGCInfo(): GCInfo | null {
 
   return {
     gcCode,
+    cacheType: typeEl?.getAttribute('title') || 'Unknown',
     difficulty,
     terrain,
     owner: ownerEl?.textContent?.trim() || '',

@@ -1,5 +1,6 @@
 export const geocachingSelectors = {
   gcCode: '#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode',
+  cacheType: 'a[href*="/about/cache_types.aspx"]',
   difficulty: '#ctl00_ContentBody_uxLegendScale img',
   terrain: '#ctl00_ContentBody_Localize12 img',
   owner: '#ctl00_ContentBody_mcd1 a',

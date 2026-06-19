@@ -1,5 +1,6 @@
 export interface GCInfo {
   gcCode: string;
+  cacheType: string;
   difficulty: string;
   terrain: string;
   owner: string;

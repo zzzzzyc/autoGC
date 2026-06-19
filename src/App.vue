@@ -84,6 +84,10 @@
                 <span class="col-span-2 font-mono text-gray-900">{{ pageState.data.info.gcCode }}</span>
               </div>
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">
+                <span class="font-semibold text-gray-500">Cache Type</span>
+                <span class="col-span-2 text-gray-900">{{ pageState.data.info.cacheType }}</span>
+              </div>
+              <div class="grid grid-cols-3 py-1 border-b border-gray-100">
                 <span class="font-semibold text-gray-500">Difficulty</span>
                 <span class="col-span-2 text-gray-900">{{ pageState.data.info.difficulty || 'N/A' }}</span>
               </div>
