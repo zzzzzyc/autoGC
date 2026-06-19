@@ -1,6 +1,6 @@
 import type { GCInfo, CheckerData, CheckerType } from '../types';
 import { geocachingSelectors } from '../utils/selectors';
-import { getCacheTypeId } from '../utils/cacheTypes';
+import { getCacheTypeId, getLogTypeId } from '../utils/cacheTypes';
 
 console.log('autoGC Content Script injected into Geocaching.com');
 
@@ -84,23 +84,28 @@ export function extractGCInfo(): GCInfo | null {
       const userEl = row.querySelector('.h5, .log-owner-name, strong, a');
       const userText = userEl ? userEl.textContent?.trim() : row.textContent?.slice(0, 50).trim();
       
-      const textEl = row.querySelector('.LogText, .log-content, .log-text, p');
-      const textContent = textEl ? textEl.textContent?.trim() : row.textContent?.trim();
+      // Extract text specifically from LogText (which contains p) and other log content classes
+      const textEl = row.querySelector('.LogText p, .LogText, .log-content, .log-text') || row.querySelector('.LogDisplayRight p');
+      const textContent = textEl ? textEl.textContent?.trim() : '';
 
       // Extract Date
       const dateEl = row.querySelector('.LogDate, .minorDetails');
       const dateText = dateEl ? dateEl.textContent?.trim() : '';
 
-      // Extract Log Type ID from icon source
+      // Extract Log Type ID using title keyword mapping, falling back to image src ID
       let typeId = 0;
       const typeIcon = (
         row.querySelector('.LogDisplayRight img[src*="/images/logtypes/"], .LogType img[src*="/images/logtypes/"]') ||
         row.querySelector('img[src*="/images/logtypes/"]:not(.LogDisplayLeft img)')
       ) as HTMLImageElement;
-      if (typeIcon && typeIcon.src) {
-        const match = typeIcon.src.match(/\/images\/logtypes\/(\d+)\.png/);
-        if (match && match[1]) {
-          typeId = parseInt(match[1], 10);
+      if (typeIcon) {
+        const titleStr = typeIcon.getAttribute('title') || typeIcon.getAttribute('alt') || '';
+        typeId = getLogTypeId(titleStr);
+        if (typeId === 0 && typeIcon.src) {
+          const match = typeIcon.src.match(/\/images\/logtypes\/(\d+)\.png/);
+          if (match && match[1]) {
+            typeId = parseInt(match[1], 10);
+          }
         }
       }
 

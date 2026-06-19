@@ -41,3 +41,29 @@ export function getCacheTypeId(title: string | null | undefined): number {
   }
   return 0; // Unknown
 }
+
+export const logTypeMap: Record<string, number> = {
+  'found it': 2,
+  'caches found': 2,
+  "didn't find it": 3,
+  'write note': 4,
+  'archive': 9,
+  'temporarily disable': 22,
+  'enable listing': 23,
+  'publish listing': 24,
+  'needs maintenance': 45,
+  'owner maintenance': 46,
+  'update coordinates': 47,
+  'reviewer note': 68,
+};
+
+export function getLogTypeId(title: string | null | undefined): number {
+  if (!title) return 0;
+  const clean = title.toLowerCase().trim();
+  for (const [keyword, id] of Object.entries(logTypeMap)) {
+    if (clean.includes(keyword)) {
+      return id;
+    }
+  }
+  return 0; // Unknown
+}
