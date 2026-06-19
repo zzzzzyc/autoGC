@@ -14,6 +14,7 @@ export const geocachingSelectors = {
   bookmarks: '#ctl00_ContentBody_BookmarkList_dlBookmarks a, .BookmarkList a',
   myBookmarks: '#ctl00_ContentBody_BookmarkList_dlMyBookmarks a',
   hint: '#div_hint',
+  decryptLink: '#ctl00_ContentBody_lnkDH',
   logs: '.LogsTable tr, #cache_logs_table tr, .log-container',
   
   // Action: Corrected Coordinates

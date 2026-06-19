@@ -58,6 +58,16 @@ export function extractGCInfo(): GCInfo | null {
     if (el.innerHTML.trim()) descriptionHtml += el.innerHTML.trim() + '<br/>';
   });
   const hintEl = document.querySelector(geocachingSelectors.hint);
+  let hint = hintEl?.textContent?.trim() || '';
+  if (hint) {
+    const lnkDHEl = document.querySelector(geocachingSelectors.decryptLink);
+    const titleVal = lnkDHEl?.getAttribute('title')?.trim() || '';
+    const textVal = lnkDHEl?.textContent?.trim() || '';
+    const isAlreadyDecrypted = titleVal.toLowerCase() === 'encrypt' || textVal.toLowerCase() === 'encrypt';
+    if (!isAlreadyDecrypted) {
+      hint = decodeRot13(hint);
+    }
+  }
 
   const tbInventory = Array.from(document.querySelectorAll(geocachingSelectors.tbInventory)).map(a => ({
     name: (a as HTMLAnchorElement).textContent?.trim() || '',
@@ -163,7 +173,7 @@ export function extractGCInfo(): GCInfo | null {
     tbInventory,
     bookmarks,
     myBookmarks,
-    hint: decodeRot13(hintEl?.textContent?.trim() || ''),
+    hint,
     logs
   };
 }

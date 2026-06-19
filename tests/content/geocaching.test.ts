@@ -163,6 +163,59 @@ describe('Feature 1: hiddenDate parsing', () => {
   });
 });
 
+describe('Feature 6: Hint decryption and extraction', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('should return empty string if hint element is missing', () => {
+    document.body.innerHTML = `
+      <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
+    `;
+    const info = extractGCInfo();
+    expect(info?.hint).toBe('');
+  });
+
+  it('should decrypt hint when decrypt link is missing (default behavior)', () => {
+    document.body.innerHTML = `
+      <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
+      <div id="div_hint">Uryyb Jbeyq!</div>
+    `;
+    const info = extractGCInfo();
+    expect(info?.hint).toBe('Hello World!');
+  });
+
+  it('should decrypt hint when decrypt link is in "Decrypt" state (not decrypted yet)', () => {
+    document.body.innerHTML = `
+      <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
+      <div id="div_hint">Uryyb Jbeyq!</div>
+      <a id="ctl00_ContentBody_lnkDH" title="Decrypt">Decrypt</a>
+    `;
+    const info = extractGCInfo();
+    expect(info?.hint).toBe('Hello World!');
+  });
+
+  it('should NOT decrypt hint when decrypt link has title "Encrypt" (already decrypted)', () => {
+    document.body.innerHTML = `
+      <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
+      <div id="div_hint">Hello World!</div>
+      <a id="ctl00_ContentBody_lnkDH" title="Encrypt">Encrypt</a>
+    `;
+    const info = extractGCInfo();
+    expect(info?.hint).toBe('Hello World!');
+  });
+
+  it('should NOT decrypt hint when decrypt link has textContent "Encrypt" (already decrypted)', () => {
+    document.body.innerHTML = `
+      <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
+      <div id="div_hint">Hello World!</div>
+      <a id="ctl00_ContentBody_lnkDH">Encrypt</a>
+    `;
+    const info = extractGCInfo();
+    expect(info?.hint).toBe('Hello World!');
+  });
+});
+
 describe('Feature 2: executeUpdateCoordinates workflow', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
