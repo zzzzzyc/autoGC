@@ -31,7 +31,7 @@
           <!-- Tab Headers -->
           <div class="flex border-b border-gray-200 text-xs">
             <button 
-              v-if="hasInfo"
+              v-if="hasInfo || isCheckerPage"
               type="button"
               @click="activeTab = 'overview'" 
               :class="['px-3 py-1.5 font-medium border-b-2 focus:outline-none transition-colors', activeTab === 'overview' ? 'border-green-600 text-green-700 bg-white font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100']"
@@ -100,6 +100,44 @@
                 <span class="font-semibold text-gray-500 mb-0.5">Personal Note</span>
                 <span class="text-gray-700 bg-gray-50 p-1.5 rounded border border-gray-200 max-h-20 overflow-y-auto whitespace-pre-wrap leading-tight">
                   {{ pageState.data?.info?.note || '(Empty)' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Checker Overview Tab -->
+            <div v-if="activeTab === 'overview' && isCheckerPage" class="text-[11px] space-y-1 bg-white p-2.5 rounded border border-gray-200 shadow-sm">
+              <div class="grid grid-cols-3 py-1 border-b border-gray-100">
+                <span class="font-semibold text-gray-500">Checker Type</span>
+                <span class="col-span-2 font-bold text-gray-900 capitalize">{{ pageState.data?.checkerType || 'Unknown' }}</span>
+              </div>
+              <div class="grid grid-cols-3 py-1 border-b border-gray-100" v-if="pageState.data?.gcCode">
+                <span class="font-semibold text-gray-500">GC Code</span>
+                <span class="col-span-2 font-mono text-gray-900 font-bold">{{ pageState.data?.gcCode }}</span>
+              </div>
+              <div class="grid grid-cols-3 py-1 border-b border-gray-100">
+                <span class="font-semibold text-gray-500">Page Title</span>
+                <span class="col-span-2 text-gray-900 truncate" :title="pageState.data?.title">{{ pageState.data?.title || 'N/A' }}</span>
+              </div>
+              <div class="grid grid-cols-3 py-1 border-b border-gray-100">
+                <span class="font-semibold text-gray-500">URL</span>
+                <span class="col-span-2 text-gray-900 truncate">
+                  <a :href="pageState.data?.url" target="_blank" class="text-blue-600 hover:underline">
+                    {{ pageState.data?.url }}
+                  </a>
+                </span>
+              </div>
+              <div class="grid grid-cols-3 py-1 border-b border-gray-100" v-if="pageState.data?.checkerType === 'geocheck'">
+                <span class="font-semibold text-gray-500">Needs CAPTCHA</span>
+                <span class="col-span-2 font-medium" :class="pageState.data?.hasCaptcha ? 'text-amber-600' : 'text-green-600'">
+                  {{ pageState.data?.hasCaptcha ? 'Yes ⚠️' : 'No' }}
+                </span>
+              </div>
+              <div class="grid grid-cols-3 py-1">
+                <span class="font-semibold text-gray-500">Status</span>
+                <span class="col-span-2 font-bold">
+                  <span v-if="pageState.data?.solved" class="text-green-600">🟢 Solved (Correct Coordinates)</span>
+                  <span v-else-if="pageState.data?.failed" class="text-red-600">🔴 Failed / Incorrect</span>
+                  <span v-else class="text-amber-500">🟡 Ready (Not Checked)</span>
                 </span>
               </div>
             </div>
@@ -221,7 +259,14 @@
 
           <!-- Action Payload Inputs -->
           <input v-if="selectedAction === 'DEBUG_WRITE_NOTE'" type="text" v-model="noteText" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入 Note 内容..." />
-          <input v-if="selectedAction === 'DEBUG_FILL_CHECKER'" type="text" v-model="checkerSolution" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入 Checker 解答..." />
+          <div v-if="selectedAction === 'DEBUG_FILL_CHECKER'" class="flex flex-col gap-2">
+            <input type="text" v-model="checkerSolution" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入 Checker 解答..." />
+            <div v-if="pageState?.data?.hasCaptcha" class="flex items-center gap-2">
+              <img v-if="pageState.data.captchaBase64" :src="pageState.data.captchaBase64" alt="Captcha" class="h-8 border border-gray-300 rounded" />
+              <span v-else class="text-[10px] text-gray-500 italic">No image data</span>
+              <input type="text" v-model="captchaText" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入验证码..." />
+            </div>
+          </div>
           <input v-if="selectedAction === 'UPDATE_COORDS'" type="text" v-model="coordsText" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入坐标 (例: N 12° 34.567 E 089° 12.345)..." />
 
           <button @click="executeAction" class="w-full bg-gray-700 text-white px-2 py-1.5 rounded text-xs font-semibold hover:bg-gray-800 disabled:opacity-50 transition-colors" :disabled="isActionDisabled">
@@ -251,6 +296,15 @@ interface PageState {
   data?: {
     info?: GCInfo;
     checkers?: CheckerData[];
+    // Checker-specific properties
+    url?: string;
+    checkerType?: string;
+    title?: string;
+    solved?: boolean;
+    failed?: boolean;
+    hasCaptcha?: boolean;
+    captchaBase64?: string | null;
+    gcCode?: string | null;
   };
   actions?: string[];
   error?: string;
@@ -261,21 +315,26 @@ const pageState = ref<PageState | null>(null);
 const selectedAction = ref<string>('');
 const actionResult = ref<string>('');
 const noteText = ref<string>('');
-const checkerSolution = ref<string>('');
-const coordsText = ref<string>('N 12° 34.567 E 089° 12.345');
+const checkerSolution = ref('');
+const captchaText = ref('');
+const coordsText = ref('N 12° 34.567 E 089° 12.345');
 const activeTab = ref<'overview' | 'metadata' | 'lists' | 'raw_json'>('overview');
 
 // Automatically set default tab based on data availability
 watch(pageState, (newState) => {
-  if (newState && (!newState.success || !newState.data?.info)) {
-    activeTab.value = 'raw_json';
-  } else {
+  if (newState && newState.success && (newState.data?.info || newState.type === 'Certitude Page' || newState.type === 'GeoCheck Page')) {
     activeTab.value = 'overview';
+  } else {
+    activeTab.value = 'raw_json';
   }
 });
 
 const hasInfo = computed(() => {
   return !!(pageState.value && pageState.value.success && pageState.value.data && pageState.value.data.info);
+});
+
+const isCheckerPage = computed(() => {
+  return !!(pageState.value && pageState.value.success && (pageState.value.type === 'Certitude Page' || pageState.value.type === 'GeoCheck Page'));
 });
 
 const pageStateError = computed(() => {
@@ -342,9 +401,16 @@ const onDebugToggle = (e: Event) => {
 const executeAction = async () => {
   actionResult.value = 'Executing...';
   let payload: any = {};
-  if (selectedAction.value === 'DEBUG_WRITE_NOTE') payload = { text: noteText.value };
-  if (selectedAction.value === 'DEBUG_FILL_CHECKER') payload = { solution: checkerSolution.value };
-  if (selectedAction.value === 'UPDATE_COORDS') payload = { coords: coordsText.value };
+  if (selectedAction.value === 'DEBUG_WRITE_NOTE') {
+    payload = { note: noteText.value };
+  } else if (selectedAction.value === 'DEBUG_FILL_CHECKER') {
+    payload = { 
+      solution: checkerSolution.value,
+      captcha: captchaText.value 
+    };
+  } else if (selectedAction.value === 'UPDATE_COORDS') {
+    payload = { coords: coordsText.value };
+  }
   
   const res: any = await sendToContentScript(selectedAction.value, payload);
   if (res && typeof res === 'object') {
