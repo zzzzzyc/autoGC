@@ -467,8 +467,8 @@ describe('Cross-Feature & Real-World Integration', () => {
     const info = extractGCInfo();
     expect(info).not.toBeNull();
     expect(info?.gcCode).toBe('GCBQE5C');
-    expect(info?.difficulty).toBe('3');
-    expect(info?.terrain).toBe('1');
+    expect(info?.difficulty).toBe(3);
+    expect(info?.terrain).toBe(1);
     expect(info?.hiddenDate).toBe('6/10/2026');
     expect(info?.owner).toBe('octoxox');
   });
@@ -478,8 +478,8 @@ describe('Cross-Feature & Real-World Integration', () => {
     const info = extractGCInfo();
     expect(info).not.toBeNull();
     expect(info?.gcCode).toBe('GCBNMY9');
-    expect(info?.difficulty).toBe('1.5');
-    expect(info?.terrain).toBe('1.5');
+    expect(info?.difficulty).toBe(1.5);
+    expect(info?.terrain).toBe(1.5);
     expect(info?.hiddenDate).toBe('4/22/2026');
     expect(info?.owner).toBe('magic_snake');
   });
@@ -489,8 +489,8 @@ describe('Cross-Feature & Real-World Integration', () => {
     const info = extractGCInfo();
     expect(info).not.toBeNull();
     expect(info?.gcCode).toBe('GC5X049');
-    expect(info?.difficulty).toBe('2');
-    expect(info?.terrain).toBe('1.5');
+    expect(info?.difficulty).toBe(2);
+    expect(info?.terrain).toBe(1.5);
     expect(info?.hiddenDate).toBe('6/5/2015');
     expect(info?.owner).toBe('magic_snake');
   });
