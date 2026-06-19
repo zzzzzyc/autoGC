@@ -1,121 +1,121 @@
-# autoGC Expanded Base API Documentation
+# autoGC 扩展 Base API 文档
 
-This document provides a comprehensive reference for the expanded base API in the autoGC Geocaching browser extension. It details the 9 new `GCInfo` fields and the 2 new automated DOM action workflows implemented in the content scripts.
+本文档为 autoGC Geocaching 浏览器扩展中新增/扩展的 Base API 提供了详尽的参考指南。内容涵盖了在内容脚本（content scripts）中实现的 9 个新增 `GCInfo` 字段，以及 2 个自动化 DOM 交互工作流。
 
 ---
 
-## 1. The 9 New `GCInfo` Fields
+## 1. 9 个新增 `GCInfo` 字段
 
-The `GCInfo` interface (defined in `src/types/index.ts`) has been expanded to include 9 new fields. These fields are extracted from the active Geocaching.com page using `extractGCInfo()` in `src/content/geocaching.ts`.
+在 `src/types/index.ts` 中定义的 `GCInfo` 接口已被扩展，新增了 9 个字段。这些字段由 `src/content/geocaching.ts` 中的 `extractGCInfo()` 函数从当前打开的 Geocaching.com 页面中提取。
 
-### Field Directory
+### 字段目录
 
-| Field Name | Type | Selector | Description |
+| 字段名称 | 类型 | 选择器 (Selector) | 描述 |
 | :--- | :--- | :--- | :--- |
-| `attributes` | `string[]` | `geocachingSelectors.attributes` <br> (`.CacheDetailNavigationWidget .WidgetBody img`) | A list of attribute/amenity names (e.g., "Dogs allowed", "Kids friendly") associated with the geocache. |
-| `favoritePoints` | `string` | `geocachingSelectors.favoritePoints` <br> (`.favorite-value, #ctl00_ContentBody_FavoritePointData_lblFavoritePoints, [data-testid="favorite-points"]`) | The total count of Favorite Points awarded to the geocache by players. |
-| `cacheType` | `string` | `geocachingSelectors.cacheType` <br> (`a[href*="/about/cache_types.aspx"]`) | The type of the geocache (e.g., "Traditional Cache", "Mystery Cache"). |
-| `description` | `string` | `geocachingSelectors.description` <br> (`#ctl00_ContentBody_LongDescription, #ctl00_ContentBody_ShortDescription, .UserSuppliedContent`) | The full HTML content representing the description of the cache. |
-| `tbInventory` | `Array<{ name: string; link: string }>` | `geocachingSelectors.tbInventory` <br> (`#ctl00_ContentBody_uxTravelBugList a, .tb-list a`) | An inventory of Travel Bugs (Trackables) currently logged inside the geocache. |
-| `bookmarks` | `Array<{ name: string; link: string; user: string }>` | `geocachingSelectors.bookmarks` <br> (`#ctl00_ContentBody_BookmarkList_dlBookmarks a, .BookmarkList a`) | Public bookmark lists that include this geocache, created by other users. |
-| `myBookmarks` | `Array<{ name: string; link: string }>` | `geocachingSelectors.myBookmarks` <br> (`#ctl00_ContentBody_BookmarkList_dlMyBookmarks a`) | The logged-in user's bookmark lists containing this geocache. |
-| `hint` | `string` | `geocachingSelectors.hint` <br> (`#div_hint`) | The encoded/decoded hint text provided by the owner to assist players. |
-| `logs` | `Array<{ user: string; date: string; type: string; text: string }>` | `geocachingSelectors.logs` <br> (`.LogsTable tr, #cache_logs_table tr, .log-container`) | A list of the most recent logs (capped at 5) posted by players. |
+| `attributes` | `string[]` | `geocachingSelectors.attributes` <br> (`.CacheDetailNavigationWidget .WidgetBody img`) | 与该宝藏关联的属性/便利设施名称列表（例如："Dogs allowed"、"Kids friendly"）。 |
+| `favoritePoints` | `string` | `geocachingSelectors.favoritePoints` <br> (`.favorite-value, #ctl00_ContentBody_FavoritePointData_lblFavoritePoints, [data-testid="favorite-points"]`) | 该宝藏获得的绿点（Favorite Points，最爱积分）总数。 |
+| `cacheType` | `string` | `geocachingSelectors.cacheType` <br> (`a[href*="/about/cache_types.aspx"]`) | 宝藏的类型（例如："Traditional Cache" 传统宝、"Mystery Cache" 谜题宝）。 |
+| `description` | `string` | `geocachingSelectors.description` <br> (`#ctl00_ContentBody_LongDescription, #ctl00_ContentBody_ShortDescription, .UserSuppliedContent`) | 宝藏描述的完整 HTML 内容。 |
+| `tbInventory` | `Array<{ name: string; link: string }>` | `geocachingSelectors.tbInventory` <br> (`#ctl00_ContentBody_uxTravelBugList a, .tb-list a`) | 当前存放在该宝藏内的 Travel Bug（旅行虫/可追踪物）清单。 |
+| `bookmarks` | `Array<{ name: string; link: string; user: string }>` | `geocachingSelectors.bookmarks` <br> (`#ctl00_ContentBody_BookmarkList_dlBookmarks a, .BookmarkList a`) | 包含该宝藏的公开书签列表（由其他用户创建）。 |
+| `myBookmarks` | `Array<{ name: string; link: string }>` | `geocachingSelectors.myBookmarks` <br> (`#ctl00_ContentBody_BookmarkList_dlMyBookmarks a`) | 当前登录用户创建的、包含该宝藏的书签列表。 |
+| `hint` | `string` | `geocachingSelectors.hint` <br> (`#div_hint`) | 宝主提供的提示文本（已解码/未编码），用于辅助玩家寻找。 |
+| `logs` | `Array<{ user: string; date: string; type: string; text: string }>` | `geocachingSelectors.logs` <br> (`.LogsTable tr, #cache_logs_table tr, .log-container`) | 玩家发布的最新日志列表（最多保留 5 条）。 |
 
 ---
 
-### Detailed Extraction & Parsing Logic
+### 详细提取与解析逻辑
 
 #### 1. `attributes`
-*   **Method**: Selects all images matching the attributes selector.
-*   **Parsing**: Loops through matching images and extracts their attribute name. It falls back to `alt`, then `title`, and finally extracts the filename from the `src` URL (removing the `.png` extension). It trims the result and filters out any empty or null values.
+*   **提取方法**：选取所有匹配属性选择器的图片元素。
+*   **解析逻辑**：遍历匹配的图片，提取其属性名称。优先获取 `alt` 属性，其次为 `title` 属性，若均不存在，则从 `src` URL 中截取文件名（去掉 `.png` 后缀）。最后对结果进行去空和修剪（trim）处理。
 
 #### 2. `favoritePoints`
-*   **Method**: Selects the element containing the favorite point count.
-*   **Parsing**: Retrieves the trimmed `textContent` of the matched element. Defaults to `'0'` if the element is missing or does not contain text.
+*   **提取方法**：选取包含最爱积分数值的元素。
+*   **解析逻辑**：获取所匹配元素的文本内容（并进行 trim）。如果元素不存在或没有文本，则默认返回 `'0'`。
 
 #### 3. `cacheType`
-*   **Method**: Selects the anchor tag referencing the cache types about page.
-*   **Parsing**: Retrieves the `title` attribute, defaulting to `'Unknown'` if not present.
+*   **提取方法**：选取指向宝藏类型介绍页面的锚点标签（anchor tag）。
+*   **解析逻辑**：获取其 `title` 属性。如果不存在，则默认返回 `'Unknown'`。
 
 #### 4. `description`
-*   **Method**: Queries the description section using high-priority identifiers (e.g., long description or user-supplied content containers).
-*   **Parsing**: Returns the raw `innerHTML` of the element, or `''` if it cannot be found.
+*   **提取方法**：使用高优先级标识符（如长描述容器或用户提供内容的容器）查询描述区域。
+*   **解析逻辑**：返回该元素的原始 `innerHTML`。如果找不到对应元素，则返回 `''`。
 
 #### 5. `tbInventory`
-*   **Method**: Queries anchor elements located within the Travel Bug/trackable list containers.
-*   **Parsing**: Maps the elements to an array of objects containing `name` (trimmed text content) and `link` (resolved `href` URL).
+*   **提取方法**：查询 Travel Bug/可追踪物列表容器中的锚点元素。
+*   **解析逻辑**：将元素映射为对象数组，每个对象包含 `name`（修剪后的文本内容）和 `link`（解析后的绝对 `href` 链接）。
 
 #### 6. `bookmarks`
-*   **Method**: Queries anchor elements inside public bookmark list widgets.
-*   **Parsing**: Maps elements to an array of objects containing `name` (trimmed text content), `link` (resolved `href` URL), and `user` (extracted from the element's `title` attribute, defaulting to `'Unknown'`).
+*   **提取方法**：查询公开书签列表挂件中的锚点元素。
+*   **解析逻辑**：将元素映射为对象数组，每个对象包含 `name`（修剪后的文本内容）、`link`（解析后的绝对 `href` 链接）和 `user`（从元素的 `title` 属性中提取，提取失败则默认为 `'Unknown'`）。
 
 #### 7. `myBookmarks`
-*   **Method**: Queries anchor elements inside the user's private bookmark list widgets.
-*   **Parsing**: Maps elements to an array of objects containing `name` (trimmed text content) and `link` (resolved `href` URL).
+*   **提取方法**：查询当前用户私有书签列表挂件中的锚点元素。
+*   **解析逻辑**：将元素映射为对象数组，每个对象包含 `name`（修剪后的文本内容）和 `link`（解析后的绝对 `href` 链接）。
 
 #### 8. `hint`
-*   **Method**: Selects the hint container element (e.g., `#div_hint`).
-*   **Parsing**: Extracts the trimmed `textContent`, returning `''` if the element does not exist.
+*   **提取方法**：选取提示容器元素（例如 `#div_hint`）。
+*   **解析逻辑**：提取并修剪其 `textContent`，若该元素不存在则返回 `''`。
 
 #### 9. `logs`
-*   **Method**: Selects rows/containers representing logs.
-*   **Parsing**: Truncates the list to the first 5 logs (`slice(0, 5)`). For each log, extracts `user` (the first 50 characters of trimmed text content) and `text` (the full trimmed text content). The `date` and `type` fields are currently returned as empty strings (`''`).
+*   **提取方法**：选取代表日志的表格行或容器。
+*   **解析逻辑**：截取前 5 条日志（`slice(0, 5)`）。对于每条日志，提取 `user`（取修剪后文本内容的前 50 个字符）和 `text`（修剪后的完整文本内容）。目前 `date` 和 `type` 字段默认返回空字符串（`''`）。
 
 ---
 
-## 2. Action Workflows
+## 2. 交互工作流 (Action Workflows)
 
-These asynchronous workflows execute direct DOM interactions on the Geocaching details page. They are defined in `src/content/geocaching.ts` and triggered by messages sent from the extension's popup UI.
+这些异步工作流会在 Geocaching 宝藏详情页上执行直接的 DOM 交互。它们在 `src/content/geocaching.ts` 中定义，并由扩展程序的弹窗 UI（popup UI）发送的消息触发。
 
-### Workflow A: `executeUpdateCoordinates`
+### 工作流 A：`executeUpdateCoordinates`
 
-*   **Signature**:
+*   **函数签名**：
     ```typescript
     export async function executeUpdateCoordinates(coords: string): Promise<string>
     ```
-*   **Parameters**:
-    *   `coords` (`string`): The corrected coordinate string to write into the form (e.g., `"N 12° 34.567 E 089° 12.345"`).
-*   **Return Value**:
-    *   `Promise<string>`: Resolves to a status message indicating success or details about a failure.
-*   **Logic Flow**:
-    1.  **Locate Edit Trigger**: Finds the coordinate edit button using `geocachingSelectors.actionCorrectedCoords.trigger` (`#uxLatLonLink, .edit-cache-coordinates`).
-    2.  **Trigger Open**: Clicks the edit button to open the corrected coordinates popover. Returns `'Error: Coordinate edit button not found.'` if the trigger is missing.
-    3.  **Poll for Input**: Sets up a polling interval checking every `200ms` (up to `20` attempts, max `4` seconds) for the coordinate input selector `geocachingSelectors.actionCorrectedCoords.input` (`[data-testid="corrected-coords-input"], input.cc-parse-text`).
-        *   If the input does not appear within `4` seconds, clears the interval and returns `'Error: Corrected coords input popover did not appear.'`.
-    4.  **Insert Coordinates**: Inserts the `coords` string into the input field and dispatches a bubbling `input` event to notify any native event listeners.
-    5.  **Submit Coordinates**: Locates the submit button via `geocachingSelectors.actionCorrectedCoords.submit` (`[data-testid="corrected-coords-submit"], button.btn-cc-parse`).
-        *   If missing, returns `'Error: Submit button not found in popover.'`.
-        *   Otherwise, clicks the submit button.
-    6.  **Poll for Accept**: Sets up a second polling interval checking every `200ms` (up to `20` attempts, max `4` seconds) for the final confirmation button selector `geocachingSelectors.actionCorrectedCoords.accept` (`[data-testid="corrected-coords-accept"], button.btn-cc-accept`).
-        *   If the accept button fails to appear, clears the interval and returns `'Error: Accept button did not appear after submit.'`.
-        *   Otherwise, clicks the accept button (which commits coordinates and triggers a **native page reload**) and returns `'Coordinates accepted. Page will now refresh.'`.
-*   **Error Scenarios**:
-    *   Coordinate edit trigger not found on the page.
-    *   Corrected coordinates popover fails to load/render within 4 seconds.
-    *   Submit button not found inside the coordinate popover.
-    *   Accept dialog/button fails to render after clicking submit.
+*   **参数**：
+    *   `coords` (`string`): 要写入表单的修改后坐标字符串（例如：`"N 12° 34.567 E 089° 12.345"`）。
+*   **返回值**：
+    *   `Promise<string>`: 解析为状态消息，指示操作成功或失败的详细原因。
+*   **逻辑流程**：
+    1.  **定位编辑触发器**：使用 `geocachingSelectors.actionCorrectedCoords.trigger` (`#uxLatLonLink, .edit-cache-coordinates`) 寻找坐标编辑按钮。
+    2.  **触发打开**：点击编辑按钮以打开修改坐标的弹出层（popover）。如果找不到触发器，则返回 `'Error: Coordinate edit button not found.'`。
+    3.  **轮询输入框**：设置一个轮询定时器，每 `200ms` 检查一次（最多尝试 `20` 次，即最长 `4` 秒），等待坐标输入框选择器 `geocachingSelectors.actionCorrectedCoords.input` (`[data-testid="corrected-coords-input"], input.cc-parse-text`) 出现。
+        *   如果输入框在 `4` 秒内未出现，则清除定时器并返回 `'Error: Corrected coords input popover did not appear.'`。
+    4.  **插入坐标**：将 `coords` 字符串写入输入框中，并分发（dispatch）一个冒泡的 `input` 事件以通知可能存在的原生事件监听器。
+    5.  **提交坐标**：通过 `geocachingSelectors.actionCorrectedCoords.submit` (`[data-testid="corrected-coords-submit"], button.btn-cc-parse`) 定位提交按钮。
+        *   若未找到提交按钮，返回 `'Error: Submit button not found in popover.'`。
+        *   否则，点击提交按钮。
+    6.  **轮询确认按钮**：设置第二个轮询定时器，每 `200ms` 检查一次（最多尝试 `20` 次，最长 `4` 秒），等待最终的确认按钮选择器 `geocachingSelectors.actionCorrectedCoords.accept` (`[data-testid="corrected-coords-accept"], button.btn-cc-accept`) 出现。
+        *   如果确认按钮未出现，清除定时器并返回 `'Error: Accept button did not appear after submit.'`。
+        *   否则，点击确认按钮（该操作会提交坐标并触发**页面的原生重载**），并返回 `'Coordinates accepted. Page will now refresh.'`。
+*   **异常场景**：
+    *   页面上未找到坐标编辑触发按钮。
+    *   修改坐标的弹出层在 4 秒内加载/渲染失败。
+    *   弹出层内未找到提交按钮。
+    *   点击提交后，确认对话框/确认按钮未渲染。
 
 ---
 
-### Workflow B: `executeSavePersonalNote`
+### 工作流 B：`executeSavePersonalNote`
 
-*   **Signature**:
+*   **函数签名**：
     ```typescript
     export async function executeSavePersonalNote(text: string): Promise<string>
     ```
-*   **Parameters**:
-    *   `text` (`string`): The personal note text to save for the current geocache.
-*   **Return Value**:
-    *   `Promise<string>`: Resolves to a status message indicating success or details about a failure.
-*   **Logic Flow**:
-    1.  **Toggle Check**: Queries the note editor container via `geocachingSelectors.actionPersonalNote.editContainer` (`#editCacheNote`). If it exists and its display property is `'none'`, clicks the note edit trigger `geocachingSelectors.actionPersonalNote.trigger` (`#viewCacheNote, button[aria-controls="editCacheNote"]`) to show the editor.
-    2.  **Poll for Textarea**: Sets up a polling interval checking every `200ms` (up to `10` attempts, max `2` seconds) for the textarea element `geocachingSelectors.actionPersonalNote.textarea` (`textarea#cacheNoteText`) to become visible (checks `offsetParent !== null`).
-        *   If it fails to become visible, clears the interval and returns `'Error: Note text area did not become visible.'`.
-    3.  **Insert Text**: Once the textarea is visible, assigns `text` to its `value` property and dispatches a bubbling `input` event.
-    4.  **Save Note**: Locates the save/submit button via `geocachingSelectors.actionPersonalNote.submit` (`button.js-pcn-submit`).
-        *   If missing, returns `'Error: Save button not found.'`.
-        *   Otherwise, clicks the save button and returns `'Personal Note saved successfully.'`.
-*   **Error Scenarios**:
-    *   Note editing section fails to become visible or trigger fails.
-    *   Save/Submit button missing within the editing section.
+*   **参数**：
+    *   `text` (`string`): 要为当前宝藏保存的个人备注（Personal Note）文本。
+*   **返回值**：
+    *   `Promise<string>`: 解析为状态消息，指示操作成功或失败的详细原因。
+*   **逻辑流程**：
+    1.  **切换状态检查**：通过 `geocachingSelectors.actionPersonalNote.editContainer` (`#editCacheNote`) 查询备注编辑器容器。如果它存在且其 display 属性为 `'none'`，则点击备注编辑触发器 `geocachingSelectors.actionPersonalNote.trigger` (`#viewCacheNote, button[aria-controls="editCacheNote"]`) 以显示编辑器。
+    2.  **轮询文本域**：设置轮询定时器，每 `200ms` 检查一次（最多尝试 `10` 次，最长 `2` 秒），等待文本输入框元素 `geocachingSelectors.actionPersonalNote.textarea` (`textarea#cacheNoteText`) 变得可见（通过 `offsetParent !== null` 判断）。
+        *   如果无法变得可见，清除定时器并返回 `'Error: Note text area did not become visible.'`。
+    3.  **插入文本**：一旦文本输入框可见，将其 `value` 属性设置为 `text`，并分发（dispatch）一个冒泡的 `input` 事件。
+    4.  **保存备注**：通过 `geocachingSelectors.actionPersonalNote.submit` (`button.js-pcn-submit`) 定位保存/提交按钮。
+        *   若未找到保存按钮，返回 `'Error: Save button not found.'`。
+        *   否则，点击保存按钮，并返回 `'Personal Note saved successfully.'`。
+*   **异常场景**：
+    *   备注编辑区域未能显示，或编辑触发器失效。
+    *   编辑区域内缺少保存/提交按钮。
