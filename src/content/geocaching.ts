@@ -46,7 +46,11 @@ export function extractGCInfo(): GCInfo | null {
   });
 
   const fpEl = document.querySelector(geocachingSelectors.favoritePoints);
-  const descEl = document.querySelector(geocachingSelectors.description);
+  const descEls = document.querySelectorAll(geocachingSelectors.description);
+  let descriptionHtml = '';
+  descEls.forEach(el => {
+    if (el.innerHTML.trim()) descriptionHtml += el.innerHTML.trim() + '<br/>';
+  });
   const hintEl = document.querySelector(geocachingSelectors.hint);
 
   const tbInventory = Array.from(document.querySelectorAll(geocachingSelectors.tbInventory)).map(a => ({
@@ -92,7 +96,7 @@ export function extractGCInfo(): GCInfo | null {
     note: noteEl?.value || document.querySelector(geocachingSelectors.actionPersonalNote.viewContainer)?.textContent?.trim() || '',
     attributes,
     favoritePoints: fpEl?.textContent?.trim() || '0',
-    description: descEl?.innerHTML || '',
+    description: descriptionHtml,
     tbInventory,
     bookmarks,
     myBookmarks,
