@@ -362,6 +362,7 @@ const availableActions = computed(() => {
     let label = act;
     if (act === 'DEBUG_WRITE_NOTE') label = '✍️ 写入 Personal Note';
     if (act === 'DEBUG_FILL_CHECKER') label = '📝 填充 Checker';
+    if (act === 'DEBUG_SUBMIT_CHECKER') label = '🚀 提交 Checker (Check)';
     if (act === 'UPDATE_COORDS') label = '📍 更新纠正坐标 (⚠️将刷新页面)';
     return { label, value: act };
   });

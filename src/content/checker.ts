@@ -79,38 +79,47 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
           captchaBase64,
           gcCode
         }, 
-        actions: ['DEBUG_FILL_CHECKER'] 
+        actions: ['DEBUG_FILL_CHECKER', 'DEBUG_SUBMIT_CHECKER'] 
       });
     } else if (message.action === 'DEBUG_FILL_CHECKER') {
       if (currentUrl.includes('certitude.org')) {
         const input = document.querySelector(certitudeSelectors.solutionInput) as HTMLInputElement;
-        const submitBtn = document.querySelector(certitudeSelectors.submitButton) as HTMLInputElement;
         if (input) {
           input.value = message.payload.solution;
-          if (submitBtn) {
-            submitBtn.click();
-          }
-          sendResponse({ success: true, message: 'Certitude filled and submitted' });
+          sendResponse({ success: true, message: 'Certitude filled' });
           return;
         }
       } else if (currentUrl.includes('geocheck.org')) {
         const input = document.querySelector(geocheckSelectors.oneFieldInput) as HTMLInputElement;
         const captchaInput = document.querySelector(geocheckSelectors.captchaInput) as HTMLInputElement;
-        const submitBtn = document.querySelector(geocheckSelectors.submitButton) as HTMLInputElement;
         
         if (input) {
           input.value = message.payload.solution;
           if (captchaInput && message.payload.captcha) {
             captchaInput.value = message.payload.captcha;
           }
-          if (submitBtn) {
-            submitBtn.click();
-          }
-          sendResponse({ success: true, message: 'GeoCheck filled and submitted' });
+          sendResponse({ success: true, message: 'GeoCheck filled' });
           return;
         }
       }
       sendResponse({ success: false, error: 'Input field not found on this Checker page' });
+    } else if (message.action === 'DEBUG_SUBMIT_CHECKER') {
+      if (currentUrl.includes('certitude.org')) {
+        const submitBtn = document.querySelector(certitudeSelectors.submitButton) as HTMLInputElement;
+        if (submitBtn) {
+          submitBtn.click();
+          sendResponse({ success: true, message: 'Certitude submitted' });
+          return;
+        }
+      } else if (currentUrl.includes('geocheck.org')) {
+        const submitBtn = document.querySelector(geocheckSelectors.submitButton) as HTMLInputElement;
+        if (submitBtn) {
+          submitBtn.click();
+          sendResponse({ success: true, message: 'GeoCheck submitted' });
+          return;
+        }
+      }
+      sendResponse({ success: false, error: 'Submit button not found on this Checker page' });
     }
   });
 }
