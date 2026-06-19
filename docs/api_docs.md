@@ -84,12 +84,18 @@
 *   **提取方法**：选取代表日志的表格行或容器。
 *   **解析逻辑**：截取前 5 条日志（`slice(0, 5)`）。对于每条日志，提取 `user`、`date`（日志日期）、`text`（日志正文）、`images`（包含日志附图链接和描述的数组），以及 `type`（日志类型的整数 ID）。
 
-    **日志类型 ID 映射表示例**（通过提取图标 URL `/images/logtypes/{id}.png` 中的数字实现）：
+    **日志类型 ID 映射表**（通过对日志类型图标的 `title`/`alt` 属性进行关键词匹配转换；若匹配失败，则通过提取图标 URL `/images/logtypes/{id}.png` 中的数字进行保底解析）：
     - 2: Found it / Caches Found
     - 3: Didn't find it
     - 4: Write note
+    - 9: Archive
+    - 22: Temporarily disable listing
+    - 23: Enable listing
     - 24: Publish listing
-    - (以此类推，该方法高度稳健且不受多语言标题影响)
+    - 45: Needs maintenance
+    - 46: Owner maintenance
+    - 47: Update coordinates
+    - 68: Reviewer note
 
 ---
 
