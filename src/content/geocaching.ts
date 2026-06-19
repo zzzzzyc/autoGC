@@ -30,8 +30,10 @@ export function extractGCInfo(): GCInfo | null {
   
   const dImg = document.querySelector(geocachingSelectors.difficulty) as HTMLImageElement;
   const tImg = document.querySelector(geocachingSelectors.terrain) as HTMLImageElement;
-  const difficulty = dImg?.alt?.match(/([\d\.]+)/)?.[1] || '';
-  const terrain = tImg?.alt?.match(/([\d\.]+)/)?.[1] || '';
+  const dMatch = dImg?.alt?.match(/([\d\.]+)/);
+  const tMatch = tImg?.alt?.match(/([\d\.]+)/);
+  const difficulty = dMatch ? parseFloat(dMatch[1]) : null;
+  const terrain = tMatch ? parseFloat(tMatch[1]) : null;
   
   const ownerEl = document.querySelector(geocachingSelectors.owner) as HTMLAnchorElement;
   const hiddenDateEl = document.querySelector(geocachingSelectors.hiddenDate);
@@ -98,7 +100,7 @@ export function extractGCInfo(): GCInfo | null {
     })(),
     note: noteEl?.value || document.querySelector(geocachingSelectors.actionPersonalNote.viewContainer)?.textContent?.trim() || '',
     attributes,
-    favoritePoints: fpEl?.textContent?.trim() || '0',
+    favoritePoints: parseInt(fpEl?.textContent?.replace(/[^\d]/g, '') || '0', 10) || 0,
     description: descriptionHtml,
     tbInventory,
     bookmarks,

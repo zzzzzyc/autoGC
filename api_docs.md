@@ -13,7 +13,7 @@
 | 字段名称 | 类型 | 选择器 (Selector) | 描述 |
 | :--- | :--- | :--- | :--- |
 | `attributes` | `string[]` | `geocachingSelectors.attributes` <br> (`.CacheDetailNavigationWidget .WidgetBody img`) | 与该宝藏关联的属性/便利设施名称列表（例如："Dogs allowed"、"Kids friendly"）。 |
-| `favoritePoints` | `string` | `geocachingSelectors.favoritePoints` <br> (`.favorite-value, #ctl00_ContentBody_FavoritePointData_lblFavoritePoints, [data-testid="favorite-points"]`) | 该宝藏获得的绿点（Favorite Points，最爱积分）总数。 |
+| `favoritePoints` | `number` | `geocachingSelectors.favoritePoints` <br> (`.favorite-value, #ctl00_ContentBody_FavoritePointData_lblFavoritePoints, [data-testid="favorite-points"]`) | 该宝藏获得的绿点（Favorite Points，最爱积分）总数。 |
 | `cacheType` | `string` | `geocachingSelectors.cacheType` <br> (`a[href*="/about/cache_types.aspx"]`) | 宝藏的类型（例如："Traditional Cache" 传统宝、"Mystery Cache" 谜题宝）。 |
 | `description` | `string` | `geocachingSelectors.description` <br> (`#ctl00_ContentBody_LongDescription, #ctl00_ContentBody_ShortDescription, .UserSuppliedContent`) | 宝藏描述的完整 HTML 内容。 |
 | `tbInventory` | `Array<{ name: string; link: string }>` | `geocachingSelectors.tbInventory` <br> (`#ctl00_ContentBody_uxTravelBugList a, .tb-list a`) | 当前存放在该宝藏内的 Travel Bug（旅行虫/可追踪物）清单。 |

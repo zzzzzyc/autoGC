@@ -1,14 +1,14 @@
 export interface GCInfo {
   gcCode: string;
   cacheType: string;
-  difficulty: string;
-  terrain: string;
+  difficulty: number | null;
+  terrain: number | null;
   owner: string;
   ownerLink: string;
   hiddenDate: string;
   note: string;
   attributes: string[];
-  favoritePoints: string;
+  favoritePoints: number;
   description: string;
   tbInventory: { name: string; link: string }[];
   bookmarks: { name: string; link: string; user: string }[];
