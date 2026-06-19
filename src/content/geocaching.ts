@@ -1,5 +1,6 @@
 import type { GCInfo, CheckerData, CheckerType } from '../types';
 import { geocachingSelectors } from '../utils/selectors';
+import { getCacheTypeId } from '../utils/cacheTypes';
 
 console.log('autoGC Content Script injected into Geocaching.com');
 
@@ -82,7 +83,7 @@ export function extractGCInfo(): GCInfo | null {
 
   return {
     gcCode,
-    cacheType: typeEl?.getAttribute('title') || 'Unknown',
+    cacheType: getCacheTypeId(typeEl?.getAttribute('title')),
     difficulty,
     terrain,
     owner: ownerEl?.textContent?.trim() || '',

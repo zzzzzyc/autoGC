@@ -14,7 +14,7 @@
 | :--- | :--- | :--- | :--- |
 | `attributes` | `string[]` | `geocachingSelectors.attributes` <br> (`.CacheDetailNavigationWidget .WidgetBody img`) | 与该宝藏关联的属性/便利设施名称列表（例如："Dogs allowed"、"Kids friendly"）。 |
 | `favoritePoints` | `number` | `geocachingSelectors.favoritePoints` <br> (`.favorite-value, #ctl00_ContentBody_FavoritePointData_lblFavoritePoints, [data-testid="favorite-points"]`) | 该宝藏获得的绿点（Favorite Points，最爱积分）总数。 |
-| `cacheType` | `string` | `geocachingSelectors.cacheType` <br> (`a[href*="/about/cache_types.aspx"]`) | 宝藏的类型（例如："Traditional Cache" 传统宝、"Mystery Cache" 谜题宝）。 |
+| `cacheType` | `number` | `geocachingSelectors.cacheType` <br> (`a[href*="/about/cache_types.aspx"]`) | 宝藏的类型 ID（对应 1-20 的整数，详情见下文映射表；未知返回 0）。 |
 | `description` | `string` | `geocachingSelectors.description` <br> (`#ctl00_ContentBody_LongDescription, #ctl00_ContentBody_ShortDescription, .UserSuppliedContent`) | 宝藏描述的完整 HTML 内容。 |
 | `tbInventory` | `Array<{ name: string; link: string }>` | `geocachingSelectors.tbInventory` <br> (`#ctl00_ContentBody_uxTravelBugList a, .tb-list a`) | 当前存放在该宝藏内的 Travel Bug（旅行虫/可追踪物）清单。 |
 | `bookmarks` | `Array<{ name: string; link: string; user: string }>` | `geocachingSelectors.bookmarks` <br> (`#ctl00_ContentBody_BookmarkList_dlBookmarks a, .BookmarkList a`) | 包含该宝藏的公开书签列表（由其他用户创建）。 |
@@ -36,7 +36,29 @@
 
 #### 3. `cacheType`
 *   **提取方法**：选取指向宝藏类型介绍页面的锚点标签（anchor tag）。
-*   **解析逻辑**：获取其 `title` 属性。如果不存在，则默认返回 `'Unknown'`。
+*   **解析逻辑**：获取其 `title` 属性，并将其映射为对应的整数 ID。如果找不到匹配的宝藏类型，则默认返回 `0`。
+
+    **类型映射表**：
+    1. Traditional Cache
+    2. Multi-Cache
+    3. Mystery Cache
+    4. EarthCache
+    5. Letterbox Hybrid
+    6. Event Cache
+    7. Cache In Trash Out Event
+    8. Mega-Event Cache
+    9. Giga-Event Cache
+    10. Wherigo Cache
+    11. Geocaching HQ Cache
+    12. GPS Adventures Maze Exhibit
+    13. Adventure Lab®
+    14. Geocaching HQ Celebration
+    15. Geocaching HQ Block Party
+    16. Community Celebration Event
+    17. Virtual Cache
+    18. Webcam Cache
+    19. Project A.P.E. Cache
+    20. Locationless Cache
 
 #### 4. `description`
 *   **提取方法**：使用高优先级标识符（如长描述容器或用户提供内容的容器）查询描述区域。
