@@ -74,12 +74,25 @@ export function extractGCInfo(): GCInfo | null {
     link: (a as HTMLAnchorElement).href
   }));
 
-  const logs = Array.from(document.querySelectorAll(geocachingSelectors.logs)).slice(0, 5).map(row => ({
-    user: row.textContent?.slice(0, 50).trim() || 'Unknown', // Simplistic extraction
-    date: '', 
-    type: '', 
-    text: row.textContent?.trim() || ''
-  }));
+  const logs = Array.from(document.querySelectorAll(geocachingSelectors.logs))
+    .filter(row => {
+      const text = row.textContent?.trim() || '';
+      return text && !text.includes('Loading Cache Logs');
+    })
+    .slice(0, 5)
+    .map(row => {
+      const userEl = row.querySelector('.log-owner-name, strong, a');
+      const userText = userEl ? userEl.textContent?.trim() : row.textContent?.slice(0, 50).trim();
+      const textEl = row.querySelector('.log-content, p, .LogText, .log-text');
+      const textContent = textEl ? textEl.textContent?.trim() : row.textContent?.trim();
+
+      return {
+        user: userText || 'Unknown',
+        date: '', 
+        type: '', 
+        text: textContent || ''
+      };
+    });
 
   return {
     gcCode,
@@ -90,7 +103,11 @@ export function extractGCInfo(): GCInfo | null {
     ownerLink: ownerEl?.href || '',
     hiddenDate: (() => {
       if (!hiddenDateEl || !hiddenDateEl.textContent) return '';
-      const normalized = hiddenDateEl.textContent.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+      // Remove zero-width spaces and other invisible formatting characters
+      const cleanText = hiddenDateEl.textContent.replace(/[\u200B-\u200D\uFEFF]/g, '');
+      const normalized = cleanText.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
+      if (!normalized) return '';
+      
       // Check if a colon exists before the first digit
       const firstDigitIndex = normalized.search(/\d/);
       const colonIndex = firstDigitIndex !== -1 ? normalized.lastIndexOf(':', firstDigitIndex) : normalized.indexOf(':');
@@ -223,10 +240,8 @@ export async function executeSavePersonalNote(text: string): Promise<string> {
 }
 
 // --- Debug Message Listener ---
-// @ts-ignore
 if (typeof chrome !== 'undefined' && chrome.runtime) {
-  // @ts-ignore
-  chrome.runtime.onMessage.addListener((message: any, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message: any, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
     if (message.action === 'GET_PAGE_STATE') {
       const data = extractGCInfo();
       const checkers = extractCheckerLinks();
@@ -236,7 +251,6 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
         data: { info: data, checkers }, 
         actions: ['DEBUG_WRITE_NOTE', 'UPDATE_COORDS'] 
       });
-      return true;
     } else if (message.action === 'DEBUG_READ_CACHE') {
       const data = extractGCInfo();
       const checkers = extractCheckerLinks();
@@ -250,8 +264,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
       executeUpdateCoordinates(message.payload.coords).then(res => {
         sendResponse({ success: true, message: res });
       });
-      return true;
+      return true; // Keep channel open for async
     }
-    return true;
   });
 }

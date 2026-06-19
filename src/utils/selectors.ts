@@ -46,7 +46,7 @@ export const certitudeSelectors = {
 
 export const geocheckSelectors = {
   oneFieldInput: 'input[name="coordOneField"]',
-  sixFieldInputs: {
+  multiFieldInputs: {
     latRadio: 'input[name="lat"]',
     latDeg: 'input[name="latdeg"]',
     latMin: 'input[name="latmin"]',

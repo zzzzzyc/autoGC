@@ -15,10 +15,8 @@ if (currentUrl.includes('certitude.org')) {
 }
 
 // --- Debug Message Listener ---
-// @ts-ignore
 if (typeof chrome !== 'undefined' && chrome.runtime) {
-  // @ts-ignore
-  chrome.runtime.onMessage.addListener((message: any, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message: any, _sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
     if (message.action === 'GET_PAGE_STATE') {
       let type = 'Unknown Checker';
       if (currentUrl.includes('certitude.org')) type = 'Certitude';
@@ -36,19 +34,18 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
         if (input) {
           input.value = message.payload.solution;
           sendResponse({ success: true, message: 'Certitude filled' });
-          return true;
+          return;
         }
       } else if (currentUrl.includes('geocheck.org')) {
         const input = document.querySelector(geocheckSelectors.oneFieldInput) as HTMLInputElement;
         if (input) {
           input.value = message.payload.solution;
           sendResponse({ success: true, message: 'GeoCheck filled' });
-          return true;
+          return;
         }
       }
       sendResponse({ success: false, error: 'Input field not found on this Checker page' });
     }
-    return true;
   });
 }
 

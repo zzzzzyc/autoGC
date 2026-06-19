@@ -5,25 +5,13 @@
       <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">v1.0.0</span>
     </div>
 
-    <!-- 主界面：用户设置区 -->
-    <div class="space-y-4 mb-6">
-      <p class="text-sm text-gray-600 font-semibold">核心功能配置</p>
-      <label class="flex items-center space-x-3 cursor-pointer">
-        <input type="checkbox" v-model="settings.autoExtract" class="w-4 h-4 rounded text-green-600 focus:ring-green-500">
-        <span class="text-sm font-medium">自动提取当前 GC 缓存信息</span>
-      </label>
-      
-      <label class="flex items-center space-x-3 cursor-pointer">
-        <input type="checkbox" v-model="settings.autoFillChecker" class="w-4 h-4 rounded text-green-600 focus:ring-green-500">
-        <span class="text-sm font-medium">打开 Checker 时自动填充并提交</span>
-      </label>
-    </div>
+    <!-- 主界面：无本地配置 -->
 
     <!-- 开发者 / Debug 折叠区 -->
     <details class="border border-gray-200 rounded bg-white shadow-sm group" @toggle="onDebugToggle">
       <summary class="text-xs font-semibold text-gray-600 cursor-pointer outline-none p-3 select-none hover:bg-gray-100 flex justify-between items-center transition-colors">
         <span>🛠️ 开发者调试工具 (Debug)</span>
-        <button @click.prevent="refreshState" class="px-2 py-0.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-[10px]">
+        <button @click.stop.prevent="refreshState" class="px-2 py-0.5 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-[10px]">
           刷新状态
         </button>
       </summary>
@@ -81,37 +69,37 @@
             <div v-if="activeTab === 'overview' && hasInfo" class="text-[11px] space-y-1 bg-white p-2.5 rounded border border-gray-200 shadow-sm">
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">
                 <span class="font-semibold text-gray-500">GC Code</span>
-                <span class="col-span-2 font-mono text-gray-900">{{ pageState.data.info.gcCode }}</span>
+                <span class="col-span-2 font-mono text-gray-900">{{ pageState.data?.info?.gcCode }}</span>
               </div>
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">
                 <span class="font-semibold text-gray-500">Cache Type</span>
-                <span class="col-span-2 text-gray-900">{{ pageState.data.info.cacheType }}</span>
+                <span class="col-span-2 text-gray-900">{{ pageState.data?.info?.cacheType }}</span>
               </div>
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">
                 <span class="font-semibold text-gray-500">Difficulty</span>
-                <span class="col-span-2 text-gray-900">{{ pageState.data.info.difficulty || 'N/A' }}</span>
+                <span class="col-span-2 text-gray-900">{{ pageState.data?.info?.difficulty || 'N/A' }}</span>
               </div>
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">
                 <span class="font-semibold text-gray-500">Terrain</span>
-                <span class="col-span-2 text-gray-900">{{ pageState.data.info.terrain || 'N/A' }}</span>
+                <span class="col-span-2 text-gray-900">{{ pageState.data?.info?.terrain || 'N/A' }}</span>
               </div>
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">
                 <span class="font-semibold text-gray-500">Owner</span>
                 <span class="col-span-2 text-gray-900">
-                  <a v-if="pageState.data.info.ownerLink" :href="pageState.data.info.ownerLink" target="_blank" class="text-blue-600 hover:underline">
-                    {{ pageState.data.info.owner || 'N/A' }}
+                  <a v-if="pageState.data?.info?.ownerLink" :href="pageState.data?.info?.ownerLink" target="_blank" class="text-blue-600 hover:underline">
+                    {{ pageState.data?.info?.owner || 'N/A' }}
                   </a>
-                  <span v-else>{{ pageState.data.info.owner || 'N/A' }}</span>
+                  <span v-else>{{ pageState.data?.info?.owner || 'N/A' }}</span>
                 </span>
               </div>
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">
                 <span class="font-semibold text-gray-500">Hidden Date</span>
-                <span class="col-span-2 text-gray-900">{{ pageState.data.info.hiddenDate || 'N/A' }}</span>
+                <span class="col-span-2 text-gray-900">{{ pageState.data?.info?.hiddenDate || 'N/A' }}</span>
               </div>
               <div class="flex flex-col pt-1">
                 <span class="font-semibold text-gray-500 mb-0.5">Personal Note</span>
                 <span class="text-gray-700 bg-gray-50 p-1.5 rounded border border-gray-200 max-h-20 overflow-y-auto whitespace-pre-wrap leading-tight">
-                  {{ pageState.data.info.note || '(Empty)' }}
+                  {{ pageState.data?.info?.note || '(Empty)' }}
                 </span>
               </div>
             </div>
@@ -120,8 +108,8 @@
             <div v-if="activeTab === 'metadata' && hasInfo" class="text-[11px] space-y-2.5 bg-white p-2.5 rounded border border-gray-200 shadow-sm">
               <div>
                 <span class="font-semibold text-gray-500 block mb-1">Attributes</span>
-                <div class="flex flex-wrap gap-1 max-h-24 overflow-y-auto" v-if="pageState.data.info.attributes && pageState.data.info.attributes.length > 0">
-                  <span v-for="attr in pageState.data.info.attributes" :key="attr" class="bg-green-50 text-green-700 border border-green-200 px-1.5 py-0.5 rounded text-[9px] font-medium">
+                <div class="flex flex-wrap gap-1 max-h-24 overflow-y-auto" v-if="pageState.data?.info?.attributes && pageState.data?.info?.attributes.length > 0">
+                  <span v-for="attr in pageState.data?.info?.attributes" :key="attr" class="bg-green-50 text-green-700 border border-green-200 px-1.5 py-0.5 rounded text-[9px] font-medium">
                     {{ attr }}
                   </span>
                 </div>
@@ -131,13 +119,13 @@
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">
                 <span class="font-semibold text-gray-500">Favorite Points</span>
                 <span class="col-span-2 text-gray-900 flex items-center gap-1 font-bold text-red-600">
-                  ❤️ {{ pageState.data.info.favoritePoints }}
+                  ❤️ {{ pageState.data?.info?.favoritePoints }}
                 </span>
               </div>
               
               <div class="flex flex-col pt-1">
                 <span class="font-semibold text-gray-500 mb-0.5">Description (HTML)</span>
-                <div class="text-gray-700 bg-gray-50 p-1.5 rounded border border-gray-200 max-h-32 overflow-y-auto text-[10px] break-words [&>img]:max-w-full" v-html="pageState.data.info.description || '<span class=\'italic text-gray-400\'>(Empty)</span>'">
+                <div class="text-gray-700 bg-gray-50 p-1.5 rounded border border-gray-200 max-h-32 overflow-y-auto text-[10px] break-words [&>img]:max-w-full" v-html="pageState.data?.info?.description || '<span class=\'italic text-gray-400\'>(Empty)</span>'">
                 </div>
               </div>
 
@@ -149,8 +137,8 @@
               <!-- Trackables -->
               <div>
                 <span class="font-semibold text-gray-500 block border-b border-gray-100 pb-0.5 mb-1">Trackables Inventory</span>
-                <ul class="list-disc pl-4 space-y-0.5" v-if="pageState.data.info.tbInventory && pageState.data.info.tbInventory.length > 0">
-                  <li v-for="tb in pageState.data.info.tbInventory" :key="tb.name">
+                <ul class="list-disc pl-4 space-y-0.5" v-if="pageState.data?.info?.tbInventory && pageState.data?.info?.tbInventory.length > 0">
+                  <li v-for="tb in pageState.data?.info?.tbInventory" :key="tb.name">
                     <a :href="tb.link" target="_blank" class="text-blue-600 hover:underline">{{ tb.name }}</a>
                   </li>
                 </ul>
@@ -160,8 +148,8 @@
               <!-- Bookmarks -->
               <div>
                 <span class="font-semibold text-gray-500 block border-b border-gray-100 pb-0.5 mb-1">Bookmarks</span>
-                <ul class="list-disc pl-4 space-y-0.5" v-if="pageState.data.info.bookmarks && pageState.data.info.bookmarks.length > 0">
-                  <li v-for="bm in pageState.data.info.bookmarks" :key="bm.name">
+                <ul class="list-disc pl-4 space-y-0.5" v-if="pageState.data?.info?.bookmarks && pageState.data?.info?.bookmarks.length > 0">
+                  <li v-for="bm in pageState.data?.info?.bookmarks" :key="bm.name">
                     <a :href="bm.link" target="_blank" class="text-blue-600 hover:underline">{{ bm.name }}</a>
                     <span class="text-gray-400 text-[9px]"> (by {{ bm.user }})</span>
                   </li>
@@ -172,8 +160,8 @@
               <!-- My Bookmarks -->
               <div>
                 <span class="font-semibold text-gray-500 block border-b border-gray-100 pb-0.5 mb-1">My Bookmarks</span>
-                <ul class="list-disc pl-4 space-y-0.5" v-if="pageState.data.info.myBookmarks && pageState.data.info.myBookmarks.length > 0">
-                  <li v-for="mbm in pageState.data.info.myBookmarks" :key="mbm.name">
+                <ul class="list-disc pl-4 space-y-0.5" v-if="pageState.data?.info?.myBookmarks && pageState.data?.info?.myBookmarks.length > 0">
+                  <li v-for="mbm in pageState.data?.info?.myBookmarks" :key="mbm.name">
                     <a :href="mbm.link" target="_blank" class="text-blue-600 hover:underline">{{ mbm.name }}</a>
                   </li>
                 </ul>
@@ -183,8 +171,8 @@
               <!-- Hint -->
               <div>
                 <span class="font-semibold text-gray-500 block border-b border-gray-100 pb-0.5 mb-1">Hint</span>
-                <div v-if="pageState.data.info.hint" class="bg-amber-50 text-amber-800 p-1.5 rounded border border-amber-200 font-mono text-[10px] whitespace-pre-wrap break-words">
-                  {{ pageState.data.info.hint }}
+                <div v-if="pageState.data?.info?.hint" class="bg-amber-50 text-amber-800 p-1.5 rounded border border-amber-200 font-mono text-[10px] whitespace-pre-wrap break-words">
+                  {{ pageState.data?.info?.hint }}
                 </div>
                 <div v-else class="text-gray-400 italic pl-1">No hint provided.</div>
               </div>
@@ -192,8 +180,8 @@
               <!-- Logs -->
               <div>
                 <span class="font-semibold text-gray-500 block border-b border-gray-100 pb-0.5 mb-1">Recent Logs</span>
-                <div v-if="pageState.data.info.logs && pageState.data.info.logs.length > 0" class="space-y-1.5">
-                  <div v-for="(log, idx) in pageState.data.info.logs" :key="idx" class="bg-gray-50 p-1.5 rounded border border-gray-200">
+                <div v-if="pageState.data?.info?.logs && pageState.data?.info?.logs.length > 0" class="space-y-1.5">
+                  <div v-for="(log, idx) in pageState.data?.info?.logs" :key="idx" class="bg-gray-50 p-1.5 rounded border border-gray-200">
                     <div class="flex justify-between font-semibold text-gray-500 text-[10px] mb-0.5">
                       <span>User: {{ log.user }}</span>
                     </div>
@@ -222,8 +210,9 @@
           </select>
 
           <!-- Action Payload Inputs -->
-          <input v-if="selectedAction === 'DEBUG_WRITE_NOTE'" type="text" v-model="payloadText" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入 Note 内容..." />
-          <input v-if="selectedAction === 'DEBUG_FILL_CHECKER' || selectedAction === 'UPDATE_COORDS'" type="text" v-model="payloadText" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入坐标 (例: N 12° 34.567 E 089° 12.345)..." />
+          <input v-if="selectedAction === 'DEBUG_WRITE_NOTE'" type="text" v-model="noteText" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入 Note 内容..." />
+          <input v-if="selectedAction === 'DEBUG_FILL_CHECKER'" type="text" v-model="checkerSolution" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入 Checker 解答..." />
+          <input v-if="selectedAction === 'UPDATE_COORDS'" type="text" v-model="coordsText" class="w-full border border-gray-300 rounded p-1.5 text-xs outline-none focus:border-green-500 bg-white" placeholder="输入坐标 (例: N 12° 34.567 E 089° 12.345)..." />
 
           <button @click="executeAction" class="w-full bg-gray-700 text-white px-2 py-1.5 rounded text-xs font-semibold hover:bg-gray-800 disabled:opacity-50 transition-colors" :disabled="isActionDisabled">
             执行调试指令
@@ -243,38 +232,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
+import type { GCInfo, CheckerData } from './types';
 
-const settings = ref({
-  autoExtract: true,
-  autoFillChecker: true
-});
+interface PageState {
+  success: boolean;
+  type?: string;
+  data?: {
+    info?: GCInfo;
+    checkers?: CheckerData[];
+  };
+  actions?: string[];
+  error?: string;
+  message?: string;
+}
 
-const pageState = ref<any>(null);
+const pageState = ref<PageState | null>(null);
 const selectedAction = ref<string>('');
 const actionResult = ref<string>('');
-const payloadText = ref<string>('N 12° 34.567 E 089° 12.345');
+const noteText = ref<string>('');
+const checkerSolution = ref<string>('');
+const coordsText = ref<string>('N 12° 34.567 E 089° 12.345');
 const activeTab = ref<'overview' | 'metadata' | 'lists' | 'raw_json'>('overview');
-
-onMounted(() => {
-  // @ts-ignore
-  if (typeof chrome !== 'undefined' && chrome.storage) {
-    // @ts-ignore
-    chrome.storage.local.get(['autoGCSettings'], (result) => {
-      if (result.autoGCSettings) {
-        settings.value = { ...settings.value, ...result.autoGCSettings };
-      }
-    });
-  }
-});
-
-watch(settings, (newVal) => {
-  // @ts-ignore
-  if (typeof chrome !== 'undefined' && chrome.storage) {
-    // @ts-ignore
-    chrome.storage.local.set({ autoGCSettings: newVal });
-  }
-}, { deep: true });
 
 // Automatically set default tab based on data availability
 watch(pageState, (newState) => {
@@ -302,9 +281,9 @@ const pageStateError = computed(() => {
 
 const isActionDisabled = computed(() => {
   if (!selectedAction.value) return true;
-  if (['DEBUG_WRITE_NOTE', 'DEBUG_FILL_CHECKER', 'UPDATE_COORDS'].includes(selectedAction.value)) {
-    return !payloadText.value || !payloadText.value.trim();
-  }
+  if (selectedAction.value === 'DEBUG_WRITE_NOTE') return !noteText.value.trim();
+  if (selectedAction.value === 'DEBUG_FILL_CHECKER') return !checkerSolution.value.trim();
+  if (selectedAction.value === 'UPDATE_COORDS') return !coordsText.value.trim();
   return false;
 });
 
@@ -340,7 +319,7 @@ const refreshState = async () => {
   selectedAction.value = '';
   actionResult.value = '';
   const res = await sendToContentScript('GET_PAGE_STATE');
-  pageState.value = res;
+  pageState.value = res as PageState;
 };
 
 const onDebugToggle = (e: Event) => {
@@ -353,9 +332,9 @@ const onDebugToggle = (e: Event) => {
 const executeAction = async () => {
   actionResult.value = 'Executing...';
   let payload: any = {};
-  if (selectedAction.value === 'DEBUG_WRITE_NOTE') payload = { text: payloadText.value };
-  if (selectedAction.value === 'DEBUG_FILL_CHECKER') payload = { solution: payloadText.value };
-  if (selectedAction.value === 'UPDATE_COORDS') payload = { coords: payloadText.value };
+  if (selectedAction.value === 'DEBUG_WRITE_NOTE') payload = { text: noteText.value };
+  if (selectedAction.value === 'DEBUG_FILL_CHECKER') payload = { solution: checkerSolution.value };
+  if (selectedAction.value === 'UPDATE_COORDS') payload = { coords: coordsText.value };
   
   const res: any = await sendToContentScript(selectedAction.value, payload);
   if (res && typeof res === 'object') {

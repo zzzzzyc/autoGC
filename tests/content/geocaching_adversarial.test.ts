@@ -21,9 +21,8 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">\r\n\t \u00a0\u200b\n</div>
     `;
     const info = extractGCInfo();
-    // BUG: Zero-width space (\u200b) is not stripped by trim() or normalized space replacement
-    // which results in it being returned instead of an empty string.
-    expect(info?.hiddenDate).toBe('\u200b');
+    // Fixed: Zero-width spaces are now properly stripped.
+    expect(info?.hiddenDate).toBe('');
   });
 
   it('should parse German locale with colon: "Versteckt: 12.04.2020"', () => {
