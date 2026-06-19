@@ -51,9 +51,10 @@ export function extractGCInfo(): GCInfo | null {
   });
 
   const fpEl = document.querySelector(geocachingSelectors.favoritePoints);
-  const descEls = document.querySelectorAll(geocachingSelectors.description);
+  const descElsList = Array.from(document.querySelectorAll(geocachingSelectors.description));
+  const topLevelDescEls = descElsList.filter(el => !descElsList.some(parentEl => parentEl !== el && parentEl.contains(el)));
   let descriptionHtml = '';
-  descEls.forEach(el => {
+  topLevelDescEls.forEach(el => {
     if (el.innerHTML.trim()) descriptionHtml += el.innerHTML.trim() + '<br/>';
   });
   const hintEl = document.querySelector(geocachingSelectors.hint);
