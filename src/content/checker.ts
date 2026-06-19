@@ -65,14 +65,16 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
         }
         
         if (solved) {
-          // 1. Coordinates: .cachedata that does not start with GC
-          const cacheDataElements = Array.from(document.querySelectorAll('.cachedata'));
-          const coordEl = cacheDataElements.find(el => {
-            const text = el.textContent?.trim() || '';
-            return text.length > 0 && !text.toUpperCase().startsWith('GC');
-          });
-          if (coordEl) {
-            solvedCoords = coordEl.textContent?.replace(/\u00A0/g, ' ').trim() || null;
+          // 1. Coordinates: td with 'Coordinate:' -> nextElementSibling -> .cachedata
+          const tds = Array.from(document.querySelectorAll('td'));
+          const coordTd = tds.find(td => td.textContent?.trim() === 'Coordinate:');
+          if (coordTd && coordTd.nextElementSibling) {
+            const cacheData = coordTd.nextElementSibling.querySelector('.cachedata');
+            if (cacheData) {
+              solvedCoords = cacheData.textContent?.replace(/\u00A0/g, ' ').trim() || null;
+            } else {
+              solvedCoords = coordTd.nextElementSibling.textContent?.replace(/\u00A0/g, ' ').trim() || null;
+            }
           }
           
           // 2. Image: in the tr following the tr that contains td.nav
