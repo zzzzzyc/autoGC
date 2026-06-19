@@ -49,9 +49,27 @@ if (typeof chrome !== 'undefined' && chrome.runtime) {
         failed = !!document.querySelector(certitudeSelectors.failureElement);
         
         if (solved) {
-          const solutionEl = document.querySelector('#solution');
-          if (solutionEl) {
-            solvedCoords = solutionEl.textContent?.trim() || null;
+          // Coordinates
+          const successEls = Array.from(document.querySelectorAll('.embossed.success'));
+          if (successEls.length > 1) {
+            // Next embossed success is coordinates
+            solvedCoords = successEls[successEls.length - 1].textContent?.trim() || null;
+          } else {
+            // id=solution has coordinates
+            const solutionEl = document.querySelector('#solution');
+            solvedCoords = solutionEl ? solutionEl.textContent?.trim() || null : (successEls[0]?.textContent?.trim() || null);
+          }
+          
+          // Message
+          const h3 = document.querySelector('h3.embossed');
+          if (h3) {
+            solvedMessage = h3.textContent?.trim() || null;
+          }
+          
+          // Image
+          const img = document.querySelector('img.thumbnail') as HTMLImageElement;
+          if (img) {
+            solvedImageUrl = img.src;
           }
         }
       } else if (currentUrl.includes('geocheck.org')) {

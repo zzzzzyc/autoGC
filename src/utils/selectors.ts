@@ -39,10 +39,10 @@ export const geocachingSelectors = {
 };
 
 export const certitudeSelectors = {
-  solutionInput: 'input#solution, input[name="coordinates"]',
-  submitButton: 'input#submitButton, input[type="submit"]',
-  successElement: '.success',
-  failureElement: '.error, .error-detail'
+  solutionInput: 'input#solution',
+  submitButton: '#submitButton, input[type="submit"]',
+  successElement: '.embossed.success',
+  failureElement: '.embossed.error-detail, .error-detail'
 };
 
 export const geocheckSelectors = {
