@@ -81,16 +81,47 @@ export function extractGCInfo(): GCInfo | null {
     })
     .slice(0, 5)
     .map(row => {
-      const userEl = row.querySelector('.log-owner-name, strong, a');
+      const userEl = row.querySelector('.h5, .log-owner-name, strong, a');
       const userText = userEl ? userEl.textContent?.trim() : row.textContent?.slice(0, 50).trim();
-      const textEl = row.querySelector('.log-content, p, .LogText, .log-text');
+      
+      const textEl = row.querySelector('.LogText, .log-content, .log-text, p');
       const textContent = textEl ? textEl.textContent?.trim() : row.textContent?.trim();
+
+      // Extract Date
+      const dateEl = row.querySelector('.LogDate, .minorDetails');
+      const dateText = dateEl ? dateEl.textContent?.trim() : '';
+
+      // Extract Log Type ID from icon source
+      let typeId = 0;
+      const typeIcon = row.querySelector('.LogDisplayRight img.icon[src*="/images/logtypes/"], .LogType img.icon[src*="/images/logtypes/"], img[src*="/images/logtypes/"]') as HTMLImageElement;
+      if (typeIcon && typeIcon.src) {
+        const match = typeIcon.src.match(/\/images\/logtypes\/(\d+)\.png/);
+        if (match && match[1]) {
+          typeId = parseInt(match[1], 10);
+        }
+      }
+
+      // Extract images
+      const images: { link: string; text: string }[] = [];
+      const imagesContainer = row.querySelector('.LogImagesTable');
+      if (imagesContainer) {
+        const imageLinks = imagesContainer.querySelectorAll('a.tb_images, a.lnk');
+        imageLinks.forEach(a => {
+          const href = (a as HTMLAnchorElement).href;
+          const span = a.querySelector('span');
+          const desc = span ? span.textContent?.trim() : '';
+          if (href) {
+            images.push({ link: href, text: desc || '' });
+          }
+        });
+      }
 
       return {
         user: userText || 'Unknown',
-        date: '', 
-        type: '', 
-        text: textContent || ''
+        date: dateText || '', 
+        type: typeId, 
+        text: textContent || '',
+        images
       };
     });
 

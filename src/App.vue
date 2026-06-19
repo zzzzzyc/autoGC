@@ -184,8 +184,18 @@
                   <div v-for="(log, idx) in pageState.data?.info?.logs" :key="idx" class="bg-gray-50 p-1.5 rounded border border-gray-200">
                     <div class="flex justify-between font-semibold text-gray-500 text-[10px] mb-0.5">
                       <span>User: {{ log.user }}</span>
+                      <span v-if="log.date" class="text-gray-400 font-normal">{{ log.date }}</span>
                     </div>
-                    <p class="text-gray-700 leading-tight whitespace-pre-wrap text-[10px]">{{ log.text }}</p>
+                    <div class="flex items-center gap-1 mb-1">
+                      <span class="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.5 border border-blue-200 rounded font-semibold">Type: {{ log.type }}</span>
+                    </div>
+                    <p class="text-gray-700 leading-tight whitespace-pre-wrap text-[10px] mb-1">{{ log.text }}</p>
+                    <div v-if="log.images && log.images.length > 0" class="flex flex-col gap-1 mt-1 border-t border-gray-200 pt-1.5">
+                      <div v-for="(img, i) in log.images" :key="i" class="flex items-center gap-1">
+                        <span class="text-[10px]">📷</span>
+                        <a :href="img.link" target="_blank" class="text-[10px] text-blue-600 hover:underline truncate max-w-[200px]">{{ img.text || 'Image' }}</a>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div v-else class="text-gray-400 italic pl-1">No logs available.</div>

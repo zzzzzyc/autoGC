@@ -20,7 +20,7 @@
 | `bookmarks` | `Array<{ name: string; link: string; user: string }>` | `geocachingSelectors.bookmarks` <br> (`#ctl00_ContentBody_BookmarkList_dlBookmarks a, .BookmarkList a`) | 包含该宝藏的公开书签列表（由其他用户创建）。 |
 | `myBookmarks` | `Array<{ name: string; link: string }>` | `geocachingSelectors.myBookmarks` <br> (`#ctl00_ContentBody_BookmarkList_dlMyBookmarks a`) | 当前登录用户创建的、包含该宝藏的书签列表。 |
 | `hint` | `string` | `geocachingSelectors.hint` <br> (`#div_hint`) | 宝主提供的提示文本（已解码/未编码），用于辅助玩家寻找。 |
-| `logs` | `Array<{ user: string; date: string; type: string; text: string }>` | `geocachingSelectors.logs` <br> (`.LogsTable tr, #cache_logs_table tr, .log-container`) | 玩家发布的最新日志列表（最多保留 5 条）。 |
+| `logs` | `Array<{ user: string; date: string; type: number; text: string; images: { link: string; text: string }[] }>` | `geocachingSelectors.logs` <br> (`.LogsTable tr, #cache_logs_table tr, .log-container`) | 玩家发布的最新日志列表（最多保留 5 条）。 |
 
 ---
 
@@ -82,7 +82,14 @@
 
 #### 9. `logs`
 *   **提取方法**：选取代表日志的表格行或容器。
-*   **解析逻辑**：截取前 5 条日志（`slice(0, 5)`）。对于每条日志，提取 `user`（取修剪后文本内容的前 50 个字符）和 `text`（修剪后的完整文本内容）。目前 `date` 和 `type` 字段默认返回空字符串（`''`）。
+*   **解析逻辑**：截取前 5 条日志（`slice(0, 5)`）。对于每条日志，提取 `user`、`date`（日志日期）、`text`（日志正文）、`images`（包含日志附图链接和描述的数组），以及 `type`（日志类型的整数 ID）。
+
+    **日志类型 ID 映射表示例**（通过提取图标 URL `/images/logtypes/{id}.png` 中的数字实现）：
+    - 2: Found it / Caches Found
+    - 3: Didn't find it
+    - 4: Write note
+    - 24: Publish listing
+    - (以此类推，该方法高度稳健且不受多语言标题影响)
 
 ---
 

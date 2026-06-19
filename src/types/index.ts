@@ -14,7 +14,13 @@ export interface GCInfo {
   bookmarks: { name: string; link: string; user: string }[];
   myBookmarks: { name: string; link: string }[];
   hint: string;
-  logs: { user: string; date: string; type: string; text: string }[];
+  logs: { 
+    user: string; 
+    date: string; 
+    type: number; 
+    text: string;
+    images: { link: string; text: string }[];
+  }[];
 }
 
 export type CheckerType = 'certitude' | 'geocheck' | 'unknown';
