@@ -47,9 +47,7 @@ npm run test
 详细的技术说明、API 接口和测试指南已移至对应文档中：
 
 *   **API 接口与设计说明**：请参阅 [docs/api_docs.md](file:///c:/Users/zzzzz/Documents/antigravity/GC-ATO/docs/api_docs.md)。
-*   **架构规范与里程碑计划**：请参阅 [docs/PROJECT.md](file:///c:/Users/zzzzz/Documents/antigravity/GC-ATO/docs/PROJECT.md)。
 *   **测试框架与环境配置**：请参阅 [docs/TEST_INFRA.md](file:///c:/Users/zzzzz/Documents/antigravity/GC-ATO/docs/TEST_INFRA.md)。
-*   **测试用例覆盖清单**：请参阅 [docs/TEST_READY.md](file:///c:/Users/zzzzz/Documents/antigravity/GC-ATO/docs/TEST_READY.md)。
 
 ---
 
