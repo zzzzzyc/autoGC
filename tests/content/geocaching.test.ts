@@ -216,6 +216,55 @@ describe('Feature 6: Hint decryption and extraction', () => {
   });
 });
 
+describe('Feature 7: Bookmark extraction', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('should extract bookmarks from the new modern DOM layout', () => {
+    document.body.innerHTML = `
+      <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
+      <div id="bookmark-lists-root">
+        <div class="mb-[1.5em]">
+          <h3 class="mb-[.5em] text-base font-bold">Bookmark Lists</h3>
+          <div class="p-[1em] border border-solid border-[#b0b0b0] bg-white mr-0">
+            <ul class="list-none p-0 m-0">
+              <li class="p-[.75em] mb-[2px] italic text-[11px] even:bg-[#ebeced]">
+                <div><a href="/plan/lists/BMEG267" class="not-italic text-[13px] no-underline hover:underline">Solved Puzzles</a> by <a href="/p/default.aspx?u=KafkaCC" class="no-underline hover:underline">KafkaCC</a></div>
+              </li>
+            </ul>
+          </div>
+          <div class="mt-4">
+            <h3 class="mb-[.5em] text-base font-bold">My Bookmark Lists</h3>
+            <div class="p-[1em] border border-solid border-[#b0b0b0] bg-white mr-0">
+              <ul class="list-none p-0 m-0">
+                <li class="p-[.75em] mb-[2px] italic text-[11px] even:bg-[#ebeced]">
+                  <div><a href="/plan/lists/BMFK012" class="not-italic text-[13px] no-underline hover:underline">三环</a> by <a href="/p/default.aspx?u=zzzzzyc" class="no-underline hover:underline">zzzzzyc</a></div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    const info = extractGCInfo();
+    expect(info?.bookmarks).toHaveLength(1);
+    expect(info?.bookmarks[0]).toEqual({
+      name: 'Solved Puzzles',
+      link: 'http://localhost:3000/plan/lists/BMEG267', // JSDOM uses localhost or about:blank. Wait, JSDOM sets relative URLs based on the document URL. Usually just checking a regex or endswith is safer if full URL isn't exact, or we can just expect matching substrings.
+      user: 'KafkaCC'
+    });
+    // Check just the ending of the link to be safe with jsdom environments
+    expect(info?.bookmarks[0].link).toMatch(/\/plan\/lists\/BMEG267$/);
+
+    expect(info?.myBookmarks).toHaveLength(1);
+    expect(info?.myBookmarks[0]).toEqual(expect.objectContaining({
+      name: '三环',
+    }));
+    expect(info?.myBookmarks[0].link).toMatch(/\/plan\/lists\/BMFK012$/);
+  });
+});
+
 describe('Feature 2: executeUpdateCoordinates workflow', () => {
   beforeEach(() => {
     document.body.innerHTML = '';

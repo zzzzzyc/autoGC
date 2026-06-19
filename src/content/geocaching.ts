@@ -74,16 +74,48 @@ export function extractGCInfo(): GCInfo | null {
     link: (a as HTMLAnchorElement).href
   }));
 
-  const bookmarks = Array.from(document.querySelectorAll(geocachingSelectors.bookmarks)).map(a => ({
-    name: (a as HTMLAnchorElement).textContent?.trim() || '',
-    link: (a as HTMLAnchorElement).href,
-    user: (a as HTMLAnchorElement).title || 'Unknown' 
-  }));
+  let bookmarks: { name: string, link: string, user: string }[] = [];
+  let myBookmarks: { name: string, link: string }[] = [];
 
-  const myBookmarks = Array.from(document.querySelectorAll(geocachingSelectors.myBookmarks)).map(a => ({
-    name: (a as HTMLAnchorElement).textContent?.trim() || '',
-    link: (a as HTMLAnchorElement).href
-  }));
+  const bookmarkRoot = document.getElementById('bookmark-lists-root');
+  if (bookmarkRoot) {
+    const sections = bookmarkRoot.querySelectorAll('h3');
+    sections.forEach(h3 => {
+      const title = h3.textContent?.trim() || '';
+      const isMyList = title.includes('My Bookmark Lists');
+      const ul = h3.nextElementSibling?.querySelector('ul');
+      if (ul) {
+        const lis = Array.from(ul.querySelectorAll('li'));
+        const listData = lis.map(li => {
+          const links = li.querySelectorAll('a');
+          const listLink = links[0] as HTMLAnchorElement | undefined;
+          const userLink = links[1] as HTMLAnchorElement | undefined;
+          return {
+            name: listLink?.textContent?.trim() || '',
+            link: listLink?.href || '',
+            user: userLink?.textContent?.trim() || 'Unknown'
+          };
+        }).filter(b => b.name);
+        
+        if (isMyList) {
+          myBookmarks = listData.map(b => ({ name: b.name, link: b.link }));
+        } else {
+          bookmarks = listData;
+        }
+      }
+    });
+  } else {
+    bookmarks = Array.from(document.querySelectorAll(geocachingSelectors.bookmarks)).map(a => ({
+      name: (a as HTMLAnchorElement).textContent?.trim() || '',
+      link: (a as HTMLAnchorElement).href,
+      user: (a as HTMLAnchorElement).title || 'Unknown' 
+    }));
+
+    myBookmarks = Array.from(document.querySelectorAll(geocachingSelectors.myBookmarks)).map(a => ({
+      name: (a as HTMLAnchorElement).textContent?.trim() || '',
+      link: (a as HTMLAnchorElement).href
+    }));
+  }
 
   const logs = Array.from(document.querySelectorAll(geocachingSelectors.logs))
     .filter(row => {
