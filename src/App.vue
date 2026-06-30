@@ -147,11 +147,24 @@
               <div>
                 <span class="font-semibold text-gray-500 block mb-1">Attributes</span>
                 <div class="flex flex-wrap gap-1 max-h-24 overflow-y-auto" v-if="pageState.data?.info?.attributes && pageState.data?.info?.attributes.length > 0">
-                  <span v-for="attr in pageState.data?.info?.attributes" :key="attr" class="bg-green-50 text-green-700 border border-green-200 px-1.5 py-0.5 rounded text-[9px] font-medium">
-                    {{ attr }}
+                  <span v-for="attr in pageState.data?.info?.attributes" :key="attr.name" 
+                        :class="['px-1.5 py-0.5 rounded text-[9px] font-medium border', attr.isOn ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200 line-through']">
+                    {{ attr.name }}
                   </span>
                 </div>
                 <div v-else class="text-gray-400 italic">No attributes found.</div>
+              </div>
+              
+              <div>
+                <span class="font-semibold text-gray-500 block mb-1 mt-2">Images (Owner Uploaded)</span>
+                <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto" v-if="pageState.data?.info?.images && pageState.data?.info?.images.length > 0">
+                  <a v-for="img in pageState.data?.info?.images" :key="img.url" :href="img.url" target="_blank"
+                     class="text-[10px] text-blue-600 hover:underline truncate max-w-full block bg-blue-50 px-1.5 py-0.5 rounded"
+                     :title="img.title || img.url">
+                    📸 {{ img.title || 'Image' }}
+                  </a>
+                </div>
+                <div v-else class="text-gray-400 italic">No images found.</div>
               </div>
               
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">

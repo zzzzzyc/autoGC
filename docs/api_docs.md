@@ -12,7 +12,8 @@
 
 | 字段名称 | 类型 | 选择器 (Selector) | 描述 |
 | :--- | :--- | :--- | :--- |
-| `attributes` | `string[]` | `geocachingSelectors.attributes` <br> (`.CacheDetailNavigationWidget .WidgetBody img`) | 与该宝藏关联的属性/便利设施名称列表（例如："Dogs allowed"、"Kids friendly"）。 |
+| `attributes` | `{ id: number; name: string; isOn: boolean }[]` | `geocachingSelectors.attributes` <br> (`.CacheDetailNavigationWidget .WidgetBody img`) | 宝藏关联的属性列表，现已数字化包含官方 ID、名称，以及是否被启用 (`isOn`) 标志。 |
+| `images` | `{ url: string; title: string }[]` | `geocachingSelectors.images` <br> (`ul.CachePageImages.NoPrint li a`) | 宝藏主上传并附加在页面下方的图片列表。 |
 | `favoritePoints` | `number` | `geocachingSelectors.favoritePoints` <br> (`.favorite-value, #ctl00_ContentBody_FavoritePointData_lblFavoritePoints, [data-testid="favorite-points"]`) | 该宝藏获得的绿点（Favorite Points，最爱积分）总数。 |
 | `cacheType` | `number` | `geocachingSelectors.cacheType` <br> (`a[href*="/about/cache_types.aspx"]`) | 宝藏的类型 ID（对应 1-20 的整数，详情见下文映射表；未知返回 0）。 |
 | `description` | `string` | `geocachingSelectors.description` <br> (`#ctl00_ContentBody_LongDescription, #ctl00_ContentBody_ShortDescription, .UserSuppliedContent`) | 宝藏描述的完整 HTML 内容。 |
@@ -28,7 +29,7 @@
 
 #### 1. `attributes`
 *   **提取方法**：选取所有匹配属性选择器的图片元素。
-*   **解析逻辑**：遍历匹配的图片，提取其属性名称。优先获取 `alt` 属性，其次为 `title` 属性，若均不存在，则从 `src` URL 中截取文件名（去掉 `.png` 后缀）。最后对结果进行去空和修剪（trim）处理。
+*   **解析逻辑**：提取其属性名称（优先 `alt` 或 `title`，其次 `src` 文件名），然后通过内置映射表将其转为官方数字 ID，并判断是否包含 `-no` 图片后缀或 `No ` 前缀以判定 `isOn` 状态。最终返回结构化的 `{ id, name, isOn }` 数组。
 
 #### 2. `favoritePoints`
 *   **提取方法**：选取包含最爱积分数值的元素。

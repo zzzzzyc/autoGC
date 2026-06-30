@@ -1,6 +1,7 @@
 import type { GCInfo, CheckerData, CheckerType, GCDate } from '../types';
 import { geocachingSelectors } from '../utils/selectors';
 import { getCacheTypeId, getLogTypeId } from '../utils/cacheTypes';
+import { getAttributeId } from '../utils/attributesMap';
 
 console.log('autoGC Content Script injected into Geocaching.com');
 
@@ -146,13 +147,26 @@ export function extractGCInfo(): GCInfo | null {
   const noteEl = document.querySelector(geocachingSelectors.personalNote) as HTMLTextAreaElement;
   
   const attrEls = document.querySelectorAll(geocachingSelectors.attributes);
-  const attributes: string[] = [];
+  const attributes: { id: number; name: string; isOn: boolean }[] = [];
   attrEls.forEach(el => {
     const img = el as HTMLImageElement;
     const name = img.alt || img.title || img.src.split('/').pop()?.replace('.png', '') || 'unknown_attr';
     if (name && name.toLowerCase() !== 'blank') {
-      attributes.push(name.trim());
+      const cleanName = name.trim();
+      const isNoImg = img.src.toLowerCase().includes('-no.png') || img.src.toLowerCase().includes('-no.gif');
+      const isOn = !(isNoImg || cleanName.toLowerCase().startsWith('no '));
+      const id = getAttributeId(cleanName);
+      attributes.push({ id, name: cleanName, isOn });
     }
+  });
+
+  const imageEls = document.querySelectorAll(geocachingSelectors.images);
+  const cacheImages = Array.from(imageEls).map(el => {
+    const a = el as HTMLAnchorElement;
+    return {
+      url: a.href,
+      title: a.getAttribute('data-title') || a.textContent?.trim() || ''
+    };
   });
 
   const fpEl = document.querySelector(geocachingSelectors.favoritePoints);
@@ -304,6 +318,7 @@ export function extractGCInfo(): GCInfo | null {
       return base.replace(/^(Hidden|Event Date|Release Date)\b\s*/i, '').trim();
     })()),
     note: noteEl?.value || document.querySelector(geocachingSelectors.actionPersonalNote.viewContainer)?.textContent?.trim() || '',
+    images: cacheImages,
     attributes,
     favoritePoints: parseInt(fpEl?.textContent?.replace(/[^\d]/g, '') || '0', 10) || 0,
     description: descriptionHtml,

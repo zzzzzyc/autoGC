@@ -16,6 +16,7 @@ export const geocachingSelectors = {
   hint: '#div_hint',
   decryptLink: '#ctl00_ContentBody_lnkDH',
   logs: '.LogsTable tr, #cache_logs_table tr, .log-container',
+  images: 'ul.CachePageImages.NoPrint li a',
   
   // Action: Corrected Coordinates
   actionCorrectedCoords: {

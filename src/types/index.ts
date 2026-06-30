@@ -13,7 +13,8 @@ export interface GCInfo {
   ownerLink: string;
   hiddenDate: GCDate | null;
   note: string;
-  attributes: string[];
+  images: { url: string; title: string }[];
+  attributes: { id: number; name: string; isOn: boolean }[];
   favoritePoints: number;
   description: string;
   tbInventory: { name: string; link: string }[];
