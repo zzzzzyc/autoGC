@@ -7,11 +7,18 @@ function loadDOMFromCache(filename: string) {
   const filePath = path.join(__dirname, '../../dom_cache', filename);
   const html = fs.readFileSync(filePath, 'utf8');
   document.documentElement.innerHTML = html;
+  const langMatch = html.match(/<html\s+[^>]*\blang=["']([^"']+)["']/i);
+  if (langMatch) {
+    document.documentElement.setAttribute('lang', langMatch[1]);
+  } else {
+    document.documentElement.removeAttribute('lang');
+  }
 }
 
 describe('Feature 1: hiddenDate parsing', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
+    document.documentElement.setAttribute('lang', 'en-US');
   });
 
   // --- Tier 1: Feature Coverage (5 tests) ---
@@ -25,7 +32,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('6/10/2026');
+    expect(info?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 
   it('should parse standard Event Date with spaces and newlines', () => {
@@ -38,7 +45,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('4/20/2026');
+    expect(info?.hiddenDate).toEqual({ year: 2026, month: 4, day: 20 });
   });
 
   it('should parse Hidden date with padded digits', () => {
@@ -51,7 +58,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('01/02/2025');
+    expect(info?.hiddenDate).toEqual({ year: 2025, month: 1, day: 2 });
   });
 
   it('should parse Event Date with padded digits', () => {
@@ -64,7 +71,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('12/31/2024');
+    expect(info?.hiddenDate).toEqual({ year: 2024, month: 12, day: 31 });
   });
 
   it('should parse Hidden date with single digit month and day', () => {
@@ -77,7 +84,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('7/7/2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 7, day: 7 });
   });
 
   // --- Tier 2: Boundary & Corner Cases (7 tests) ---
@@ -86,7 +93,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('');
+    expect(info?.hiddenDate).toBeNull();
   });
 
   it('should return empty string if Hidden element has no content', () => {
@@ -95,7 +102,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2"></div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('');
+    expect(info?.hiddenDate).toBeNull();
   });
 
   it('should handle only whitespace in Hidden element', () => {
@@ -104,7 +111,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">   \n   \t   </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('');
+    expect(info?.hiddenDate).toBeNull();
   });
 
   it('should parse Hidden date format without colons', () => {
@@ -115,7 +122,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('6/10/2026');
+    expect(info?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 
   it('should parse Event Date format without colons', () => {
@@ -126,7 +133,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('4/20/2026');
+    expect(info?.hiddenDate).toEqual({ year: 2026, month: 4, day: 20 });
   });
 
   it('should handle multiple colons in Hidden label', () => {
@@ -137,7 +144,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('6/10/2026');
+    expect(info?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 
   it('should parse future date formats', () => {
@@ -148,7 +155,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('12/31/2099');
+    expect(info?.hiddenDate).toEqual({ year: 2099, month: 12, day: 31 });
   });
 
   it('should parse date containing a time with a colon', () => {
@@ -159,7 +166,7 @@ describe('Feature 1: hiddenDate parsing', () => {
       </div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('06/10/2026 12:00');
+    expect(info?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 });
 
@@ -606,6 +613,7 @@ describe('Feature 3: executeSavePersonalNote workflow', () => {
 describe('Cross-Feature & Real-World Integration', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
+    document.documentElement.setAttribute('lang', 'en-US');
     vi.useFakeTimers();
   });
 
@@ -626,7 +634,7 @@ describe('Cross-Feature & Real-World Integration', () => {
     const info = extractGCInfo();
     expect(info).not.toBeNull();
     expect(info?.gcCode).toBe('GCBQE5C');
-    expect(info?.hiddenDate).toBe('6/10/2026');
+    expect(info?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
 
     await vi.advanceTimersByTimeAsync(4200);
     await promise;
@@ -679,7 +687,7 @@ describe('Cross-Feature & Real-World Integration', () => {
     expect(info?.cacheType).toBe(3);
     expect(info?.difficulty).toBe(3);
     expect(info?.terrain).toBe(1);
-    expect(info?.hiddenDate).toBe('6/10/2026');
+    expect(info?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
     expect(info?.owner).toBe('octoxox');
   });
 
@@ -691,7 +699,7 @@ describe('Cross-Feature & Real-World Integration', () => {
     expect(info?.cacheType).toBe(3);
     expect(info?.difficulty).toBe(1.5);
     expect(info?.terrain).toBe(1.5);
-    expect(info?.hiddenDate).toBe('4/22/2026');
+    expect(info?.hiddenDate).toEqual({ year: 2026, month: 4, day: 22 });
     expect(info?.owner).toBe('magic_snake');
   });
 
@@ -703,7 +711,7 @@ describe('Cross-Feature & Real-World Integration', () => {
     expect(info?.cacheType).toBe(3);
     expect(info?.difficulty).toBe(2);
     expect(info?.terrain).toBe(1.5);
-    expect(info?.hiddenDate).toBe('6/5/2015');
+    expect(info?.hiddenDate).toEqual({ year: 2015, month: 6, day: 5 });
     expect(info?.owner).toBe('magic_snake');
   });
 

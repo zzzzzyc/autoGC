@@ -94,7 +94,7 @@
               </div>
               <div class="grid grid-cols-3 py-1 border-b border-gray-100">
                 <span class="font-semibold text-gray-500">Hidden Date</span>
-                <span class="col-span-2 text-gray-900">{{ pageState.data?.info?.hiddenDate || 'N/A' }}</span>
+                <span class="col-span-2 text-gray-900">{{ formatHiddenDate(pageState.data?.info?.hiddenDate) }}</span>
               </div>
               <div class="flex flex-col pt-1">
                 <span class="font-semibold text-gray-500 mb-0.5">Personal Note</span>
@@ -304,6 +304,16 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import type { GCInfo, CheckerData } from './types';
+
+const formatHiddenDate = (date: any) => {
+  if (!date) return 'N/A';
+  if (typeof date === 'object' && date.year !== undefined) {
+    const mm = String(date.month).padStart(2, '0');
+    const dd = String(date.day).padStart(2, '0');
+    return `${date.year}-${mm}-${dd}`;
+  }
+  return String(date);
+};
 
 interface PageState {
   success: boolean;

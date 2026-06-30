@@ -4,6 +4,7 @@ import { extractGCInfo, executeUpdateCoordinates } from '../../src/content/geoca
 describe('Adversarial/Stress testing: hiddenDate parsing', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
+    document.documentElement.setAttribute('lang', 'de');
   });
 
   it('should handle dates with foreign characters and accents (French, German, Japanese) with colons', () => {
@@ -12,21 +13,21 @@ describe('Adversarial/Stress testing: hiddenDate parsing', () => {
       <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
       <div id="ctl00_ContentBody_mcd2">Cachée : 10/06/2026</div>
     `;
-    expect(extractGCInfo()?.hiddenDate).toBe('10/06/2026');
+    expect(extractGCInfo()?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
 
     // German: Versteckt : 10.06.2026
     document.body.innerHTML = `
       <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
       <div id="ctl00_ContentBody_mcd2">Versteckt : 10.06.2026</div>
     `;
-    expect(extractGCInfo()?.hiddenDate).toBe('10.06.2026');
+    expect(extractGCInfo()?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
 
     // Japanese: 隠された : 2026年6月10日
     document.body.innerHTML = `
       <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
       <div id="ctl00_ContentBody_mcd2">隠された : 2026年6月10日</div>
     `;
-    expect(extractGCInfo()?.hiddenDate).toBe('2026年6月10日');
+    expect(extractGCInfo()?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 
   it('should reveal limitations in multi-lingual dates without colons', () => {
@@ -35,14 +36,14 @@ describe('Adversarial/Stress testing: hiddenDate parsing', () => {
       <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
       <div id="ctl00_ContentBody_mcd2">Hidden 10/06/2026</div>
     `;
-    expect(extractGCInfo()?.hiddenDate).toBe('10/06/2026');
+    expect(extractGCInfo()?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
 
     // Without colons, German "Versteckt 10.06.2026" fails to strip prefix
     document.body.innerHTML = `
       <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
       <div id="ctl00_ContentBody_mcd2">Versteckt 10.06.2026</div>
     `;
-    expect(extractGCInfo()?.hiddenDate).toBe('Versteckt 10.06.2026');
+    expect(extractGCInfo()?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 
   it('should parse dates wrapped in inner HTML tags gracefully', () => {
@@ -52,7 +53,7 @@ describe('Adversarial/Stress testing: hiddenDate parsing', () => {
         <strong>Hidden:</strong> <span>10/06/2026</span>
       </div>
     `;
-    expect(extractGCInfo()?.hiddenDate).toBe('10/06/2026');
+    expect(extractGCInfo()?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 
   it('should handle dates with multiple colons and times', () => {
@@ -62,7 +63,7 @@ describe('Adversarial/Stress testing: hiddenDate parsing', () => {
         Event Date: 10/06/2026 at 15:30:00
       </div>
     `;
-    expect(extractGCInfo()?.hiddenDate).toBe('10/06/2026 at 15:30:00');
+    expect(extractGCInfo()?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 
   it('should handle completely malformed/unexpected labels', () => {
@@ -72,7 +73,7 @@ describe('Adversarial/Stress testing: hiddenDate parsing', () => {
         Some random prefix: 10/06/2026
       </div>
     `;
-    expect(extractGCInfo()?.hiddenDate).toBe('10/06/2026');
+    expect(extractGCInfo()?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 
   it('should parse correctly if there is no label at all (only date)', () => {
@@ -80,7 +81,7 @@ describe('Adversarial/Stress testing: hiddenDate parsing', () => {
       <span id="ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode">GC12345</span>
       <div id="ctl00_ContentBody_mcd2">10/06/2026</div>
     `;
-    expect(extractGCInfo()?.hiddenDate).toBe('10/06/2026');
+    expect(extractGCInfo()?.hiddenDate).toEqual({ year: 2026, month: 6, day: 10 });
   });
 });
 

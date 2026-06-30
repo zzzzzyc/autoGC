@@ -1,3 +1,9 @@
+export interface GCDate {
+  year: number;
+  month: number;
+  day: number;
+}
+
 export interface GCInfo {
   gcCode: string;
   cacheType: number;
@@ -5,7 +11,7 @@ export interface GCInfo {
   terrain: number | null;
   owner: string;
   ownerLink: string;
-  hiddenDate: string;
+  hiddenDate: GCDate | null;
   note: string;
   attributes: string[];
   favoritePoints: number;

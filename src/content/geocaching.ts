@@ -1,4 +1,4 @@
-import type { GCInfo, CheckerData, CheckerType } from '../types';
+import type { GCInfo, CheckerData, CheckerType, GCDate } from '../types';
 import { geocachingSelectors } from '../utils/selectors';
 import { getCacheTypeId, getLogTypeId } from '../utils/cacheTypes';
 
@@ -18,6 +18,111 @@ const decodeRot13 = (text: string): string => {
     });
   }).join('');
 };
+
+export function parseDate(dateStr: string | null | undefined): GCDate | null {
+  if (!dateStr) return null;
+
+  // Clean of zero-width spaces/invisible characters
+  const clean = dateStr.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+  if (!clean) return null;
+
+  const MONTH_MAP: { [key: string]: number } = {
+    jan: 1, january: 1, januar: 1, janvier: 1,
+    feb: 2, february: 2, februar: 2, fevrier: 2, février: 2, fev: 2,
+    mar: 3, march: 3, marz: 3, märz: 3, mars: 3,
+    apr: 4, april: 4, avril: 4, avr: 4,
+    may: 5, mai: 5, mayo: 5, maggio: 5,
+    jun: 6, june: 6, juni: 6, juin: 6,
+    jul: 7, july: 7, juli: 7, juillet: 7, jui: 7,
+    aug: 8, august: 8, aout: 8, août: 8, aoû: 8,
+    sep: 9, september: 9, septembre: 9,
+    oct: 10, october: 10, oktober: 10, octobre: 10, okt: 10,
+    nov: 11, november: 11, novembre: 11,
+    dec: 12, december: 12, dezember: 12, decembre: 12, décembre: 12, dez: 12
+  };
+
+  const monthPattern = '(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+
+  // Pattern 1: DD Month YYYY (e.g., 30 Jun 2026)
+  const textPattern1 = new RegExp(`\\b(\\d{1,2})\\s+${monthPattern}\\s+(\\d{4})\\b`, 'i');
+  let match = clean.match(textPattern1);
+  if (match) {
+    const day = parseInt(match[1], 10);
+    const month = MONTH_MAP[match[2].toLowerCase()];
+    const year = parseInt(match[3], 10);
+    if (month && day >= 1 && day <= 31 && year > 0) {
+      return { year, month, day };
+    }
+  }
+
+  // Pattern 2: Month/DD/YYYY (e.g., Jun/30/2026)
+  const textPattern2 = new RegExp(`\\b${monthPattern}[/\\s]+(\\d{1,2})[/\\s]+(\\d{4})\\b`, 'i');
+  match = clean.match(textPattern2);
+  if (match) {
+    const month = MONTH_MAP[match[1].toLowerCase()];
+    const day = parseInt(match[2], 10);
+    const year = parseInt(match[3], 10);
+    if (month && day >= 1 && day <= 31 && year > 0) {
+      return { year, month, day };
+    }
+  }
+
+  // Pattern 3: YYYY-MM-DD / YYYY/MM/DD / YYYY. MM. DD. (Year first)
+  // e.g. 2026. 6. 30., 2026. 06. 30., 2026/06/30, 2026-06-30, 2026年6月10日
+  const yearFirstPattern = /\b(\d{4})(?:[-/年]|\.\s*)(\d{1,2})(?:[-/月]|\.\s*)(\d{1,2})(?:日)?\b/;
+  match = clean.match(yearFirstPattern);
+  if (match) {
+    const year = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10);
+    const day = parseInt(match[3], 10);
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year > 0) {
+      return { year, month, day };
+    }
+  }
+
+  // Pattern 4: Day/Month-first numeric date (e.g. 30.6.2026, 06/10/2026, 30-06-26)
+  const dayMonthFirstPattern = /\b(\d{1,2})(?:[-/]|\.\s*)(\d{1,2})(?:[-/]|\.\s*)(\d{4}|\d{2})\b/;
+  match = clean.match(dayMonthFirstPattern);
+  if (match) {
+    const first = parseInt(match[1], 10);
+    const second = parseInt(match[2], 10);
+    const third = parseInt(match[3], 10);
+
+    let day: number;
+    let month: number;
+    let year: number;
+
+    if (third < 100) {
+      year = 2000 + third;
+    } else {
+      year = third;
+    }
+
+    if (first > 12) {
+      day = first;
+      month = second;
+    } else if (second > 12) {
+      day = second;
+      month = first;
+    } else {
+      // Ambiguity case
+      const lang = typeof document !== 'undefined' && document.documentElement ? document.documentElement.lang : '';
+      if (lang === 'en-US') {
+        month = first;
+        day = second;
+      } else {
+        day = first;
+        month = second;
+      }
+    }
+
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year > 0) {
+      return { year, month, day };
+    }
+  }
+
+  return null;
+}
 
 export function extractGCInfo(): GCInfo | null {
   console.log('Extracting GC info...');
@@ -183,12 +288,12 @@ export function extractGCInfo(): GCInfo | null {
     terrain,
     owner: ownerEl?.textContent?.trim() || '',
     ownerLink: ownerEl?.href || '',
-    hiddenDate: (() => {
-      if (!hiddenDateEl || !hiddenDateEl.textContent) return '';
+    hiddenDate: parseDate((() => {
+      if (!hiddenDateEl || !hiddenDateEl.textContent) return null;
       // Remove zero-width spaces and other invisible formatting characters
       const cleanText = hiddenDateEl.textContent.replace(/[\u200B-\u200D\uFEFF]/g, '');
       const normalized = cleanText.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
-      if (!normalized) return '';
+      if (!normalized) return null;
       
       // Check if a colon exists before the first digit
       const firstDigitIndex = normalized.search(/\d/);
@@ -197,7 +302,7 @@ export function extractGCInfo(): GCInfo | null {
       const base = hasLabelColon ? normalized.substring(colonIndex + 1).trim() : normalized;
       // Strip common prefixes (case insensitive) followed by optional spaces
       return base.replace(/^(Hidden|Event Date|Release Date)\b\s*/i, '').trim();
-    })(),
+    })()),
     note: noteEl?.value || document.querySelector(geocachingSelectors.actionPersonalNote.viewContainer)?.textContent?.trim() || '',
     attributes,
     favoritePoints: parseInt(fpEl?.textContent?.replace(/[^\d]/g, '') || '0', 10) || 0,

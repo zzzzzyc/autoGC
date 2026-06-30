@@ -4,6 +4,7 @@ import { extractGCInfo, executeUpdateCoordinates } from '../../src/content/geoca
 describe('Adversarial / Stress tests: hiddenDate parsing', () => {
   beforeEach(() => {
     document.body.innerHTML = '';
+    document.documentElement.setAttribute('lang', 'de');
   });
 
   it('should handle completely empty hiddenDateEl content', () => {
@@ -12,7 +13,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2"></div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('');
+    expect(info?.hiddenDate).toBeNull();
   });
 
   it('should handle only weird whitespace characters', () => {
@@ -22,7 +23,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
     `;
     const info = extractGCInfo();
     // Fixed: Zero-width spaces are now properly stripped.
-    expect(info?.hiddenDate).toBe('');
+    expect(info?.hiddenDate).toBeNull();
   });
 
   it('should parse German locale with colon: "Versteckt: 12.04.2020"', () => {
@@ -31,7 +32,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Versteckt: 12.04.2020</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('12.04.2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should handle German locale WITHOUT colon: "Versteckt 12.04.2020"', () => {
@@ -40,10 +41,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Versteckt 12.04.2020</div>
     `;
     const info = extractGCInfo();
-    // Since "Versteckt" is not in the english-only prefix removal list:
-    // /^(Hidden|Event Date|Release Date)\b\s*/i
-    // it will return "Versteckt 12.04.2020". Let's verify this behavior.
-    expect(info?.hiddenDate).toBe('Versteckt 12.04.2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should parse French locale with colon: "Caché : 12/04/2020"', () => {
@@ -52,7 +50,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Caché : 12/04/2020</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('12/04/2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should handle French locale WITHOUT colon: "Caché 12/04/2020"', () => {
@@ -61,7 +59,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Caché 12/04/2020</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('Caché 12/04/2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should parse Swedish locale with colon: "Dold: 2020-04-12"', () => {
@@ -70,7 +68,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Dold: 2020-04-12</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('2020-04-12');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should parse Polish locale with colon: "Ukryta: 12.04.2020"', () => {
@@ -79,7 +77,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Ukryta: 12.04.2020</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('12.04.2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should parse Russian locale with colon: "Скрытый: 12.04.2020"', () => {
@@ -88,7 +86,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Скрытый: 12.04.2020</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('12.04.2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should parse Chinese locale with colon: "隐藏: 2020-04-12"', () => {
@@ -97,7 +95,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">隐藏: 2020-04-12</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('2020-04-12');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should parse French Event Date with colon: "Date de l\'événement : 12/04/2020"', () => {
@@ -106,7 +104,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Date de l'événement : 12/04/2020</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('12/04/2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should handle date with trailing parenthetical text: "Hidden: 12/04/2020 (edited)"', () => {
@@ -115,8 +113,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Hidden: 12/04/2020 (edited)</div>
     `;
     const info = extractGCInfo();
-    // Verify that the parser doesn't strip parenthetical data since it just takes substring after colon
-    expect(info?.hiddenDate).toBe('12/04/2020 (edited)');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should handle label with no digits at all: "Hidden: TBD"', () => {
@@ -125,7 +122,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Hidden: TBD</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('TBD');
+    expect(info?.hiddenDate).toBeNull();
   });
 
   it('should handle multiple dates or complex text: "Hidden: 12/04/2020 or 13/04/2020"', () => {
@@ -134,7 +131,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Hidden: 12/04/2020 or 13/04/2020</div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('12/04/2020 or 13/04/2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should handle embedded HTML tags: "Hidden: <b>12/04/2020</b>"', () => {
@@ -143,7 +140,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Hidden: <b>12/04/2020</b></div>
     `;
     const info = extractGCInfo();
-    expect(info?.hiddenDate).toBe('12/04/2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should handle multiple colons: "Hidden: Date: Added: 12/04/2020"', () => {
@@ -152,10 +149,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Hidden: Date: Added: 12/04/2020</div>
     `;
     const info = extractGCInfo();
-    // firstDigitIndex of "Hidden: Date: Added: 12/04/2020" is index of '1' in '12', which is 21.
-    // lastIndexOf(':', 21) is 20 (the one right before 12).
-    // So hasLabelColon = true, base = "12/04/2020".
-    expect(info?.hiddenDate).toBe('12/04/2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 
   it('should handle multiple colons when first colon is after first digit: "Hidden 12:00 Date: 12/04/2020"', () => {
@@ -164,13 +158,7 @@ describe('Adversarial / Stress tests: hiddenDate parsing', () => {
       <div id="ctl00_ContentBody_mcd2">Hidden 12:00 Date: 12/04/2020</div>
     `;
     const info = extractGCInfo();
-    // normalized = "Hidden 12:00 Date: 12/04/2020"
-    // firstDigitIndex = 7 (the '1' in '12:00')
-    // colonIndex = lastIndexOf(':', 7) -> -1
-    // hasLabelColon = false
-    // base = "Hidden 12:00 Date: 12/04/2020"
-    // replaced with prefix (removes "Hidden " because it starts with it)
-    expect(info?.hiddenDate).toBe('12:00 Date: 12/04/2020');
+    expect(info?.hiddenDate).toEqual({ year: 2020, month: 4, day: 12 });
   });
 });
 
